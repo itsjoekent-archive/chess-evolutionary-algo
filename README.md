@@ -10,7 +10,7 @@ By contrast, [evolutionary algorithms](https://en.wikipedia.org/wiki/Evolutionar
 
 While evolutionary algorithms are different from neural networks in a number of important aspects, evolutionary algorithms still rely on the concept of "training" the computer to search a problem space for an optimal solution.
 
-To get a deeper insight on how this process has been implemented, see [`spec.txt`](./spec.txt).
+To get a deeper insight on how this process has been implemented, see [`SPEC.txt`](./SPEC.txt).
 
 ## Local Development
 
