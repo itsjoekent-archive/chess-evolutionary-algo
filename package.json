@@ -1,0 +1,14 @@
+{
+  "name": "chess-evolutionary-algo",
+  "description": "♟️ evolutionary algorithm to help learn how to play chess better",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "chess.js": "^1.0.0-beta.7"
+  }
+}

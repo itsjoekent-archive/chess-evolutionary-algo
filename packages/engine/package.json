@@ -1,0 +1,10 @@
+{
+  "name": "@chess-evolutionary-algo/engine",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17"
+  }
+}

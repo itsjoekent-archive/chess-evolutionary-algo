@@ -1,0 +1,183 @@
+Chess Evolutionary Algorithm Spec
+by @itsjoekent, 2024
+Version 1.0
+
+=== SUMMARY ==============================================================
+
+This is a system for developing an evolutionary algorithm that can
+discover the optimal moves to make in a chess game.
+
+
+
+=== VARIABLES ============================================================
+
+The algorithm has access to variables that describe the state of the board.
+The variables should avoid adding strategic biases, for example, they
+should not award "point values" to pieces. Variables are are purely for 
+representing core game rules, such as being in check.
+
+All variables are evaluated into integers.
+
+All variables are evaluated after the move has been made, in order to
+determine if it was an effective move.
+
+- (0/1) is_self
+  - Binary value that is only 1 if there is a piece on the square that
+    belongs to the player running the algorithm.
+
+- (0/1) is_opponent
+  - Binary value that is only 1 if there is a piece on the square that
+    belongs to the opponent of the player running this algorithm.
+
+- (0/1) is_pawn, ...
+  - Binary value representing whether the square is occupied by any pawn.
+  - Exists for every piece type.
+
+- (0/1) is_in_check
+  - Binary value representing whether the king on the square is in check.
+
+- (0/n) is_under_attack
+  - Range value representing whether the piece on this square is under
+    attack by any other piece(s).
+
+- (0-n) is_under_attack_by_pawn, ...
+  - Range value representing whether the piece on this square is under
+    attack by any pawn(s).
+  - Exists for every piece type.
+
+- (0/1) captured_piece
+  - Binary value representing whether the piece on this square just
+    captured another piece.
+  - This is always a "self" value.
+
+- (0/1) captured_pawn, ...
+  - Binary value representing whether the piece on this square just
+    captured another pawn.
+  - Exists for every piece type.
+  - This is always a "self" value.
+
+- (0/1) lost_piece
+  - Binary value representing whether the piece on this square was just 
+    captured by another piece.
+  - This is always a "self" value.
+
+- (0/1) lost_pawn, ...
+  - Binary value representing whether the piece on this square was 
+    a pawn and was just captured by another piece.
+  - Exists for every piece type.
+  - This is always a "self" value.
+
+- (0-n) can_attack
+  - Range value representing how many other pieces that the piece on this
+    square can attack.
+
+- (0-n) can_attack_pawn, ...
+  - Range value representing how many other pawns that the piece on this
+    square can attack.
+  - Exists for every piece type.
+
+- (0-n) possible_moves
+  - Range value representing how many possible moves the piece on this
+    square has.
+
+- (0-8) adjacent_friendly_squares
+  - Range value representing how many squares adjacent to this piece 
+    belong to the same player.
+
+- (0-8) adjacent_opponent_squares
+  - Range value representing how many squares adjacent to this piece 
+    belong to the opposing player.
+
+
+
+=== CUSTOM VARIABLES =====================================================
+
+In addition to the game defined variables, the algorithm has access to 48
+custom variables. 36 are reserved as static values that are set when the 
+algorithm is first created. They can only be modified through evolution 
+and mutation.
+
+The remaining 12 variables can be set at runtime. Runtime variables are
+set to 0 at the start of a game, and reset between games.
+
+Each custom variable is an integer that can range from -99 to +99.
+
+
+
+=== TOKENS ===============================================================
+
+The algorithm is composed of tokens that represent mathematical or logical
+operations.
+
+All tokens evaluate to a numeric value. Some tokens require arguments in 
+order to execute. Any token can be an argument for another token.
+
+--------------------------------------------------------------------------
+ ID        | ARGS  | DESCRIPTION
+-----------+-------+------------------------------------------------------
+`Add()`    | 2     | Add two values
+`Sub()`    | 2     | Subtract two values
+`Mul()`    | 2     | Multiply two values
+`Div()`    | 2     | Divide two values
+`Mod()`    | 2     | Find the remainder of a division
+`Pow()`    | 2     | Raise the base to a power
+`Round()`  | 1     | Round the value
+`Floor()`  | 1     | Round the value down
+`Ceil()`   | 1     | Round the value up
+`Max()`    | 2     | Return the larger value
+`Min()`    | 2     | Return the smaller value
+`Eq()`     | 2     | Return 1 if both values are equal
+`Gt()`     | 2     | Return 1 if the left value is greater than the right
+`Gte()`    | 2     | Return 1 if the left value is greater than or equal
+`Lt()`     | 2     | Return 1 if the left value is less than the right
+`Lte()`    | 2     | Return 1 if the left value is less than or equal
+`Binary()` | 1     | Converts value to 0 or 1 (n >= 1)
+`And()`    | 2     | Returns 1 if both values are 1
+`Or()`     | 2     | Returns 1 if either value is 1
+`If()`     | 3     | If the first value is 1, return the 2nd value
+`Write()`  | 2     | Write the left value into the custom variable
+
+In addition to the above function calls, each variable can be declared as
+a standalone token.
+
+
+
+=== EVOLUTION PROCESS ====================================================
+
+The process of iterating on the evolutionary algorithm requires going 
+through the following steps to generate a fitness score for the algorithm,
+
+1. Initiate an algorithm with a random token, assign a color to play (black 
+or white), and start a new game of chess.
+2. Create a new instance of Stockfish at the lowest level.
+3. On the algorithms turn,
+  A. Loop over each piece.
+  B. Get all moves available for each piece.
+  C. Create copies of the game board that represent each possible move.
+    1. Loop over each square on the board.
+    2. Calculate game variables for that square.
+    3. Run the algorithm for the square.
+    4. Aggregate all of the scores.
+  D. Filter out all non-negative scores, pick the move with the highest
+     score, repeat step 3. If there is a tie, pick at random.
+  E. If there are no positive scores, or the game reached an end state,
+     the simulation has ended and fitness is calculated for evolution.
+
+Fitness points are awarded as follows,
+* `-1` if there is a tie when evaluating moves.
+* `+1` for each turn played by the algorithm.
+* `+1` for capturing a piece.
+* `-1` for losing a piece.
+* `+3` for putting the king in check.
+* `+3` for a draw (three-fold repition, etc).
+* `-10` for losing by checkmate.
+* `+20` for checkmating.
+* `-20` for running out of time.
+
+Once each algorithm has completed playing the game, the algorithms are
+sorted by fitness points awarded. The top 25% will create offspring and
+mutate each child. Mutation involves adding, removing, or replacing a 
+token, or modifying the value of one of the custom variables.
+
+This process repeats until an optimal solution is discovered, with
+increasingly more difficult versions of Stockfish as the opponent.
