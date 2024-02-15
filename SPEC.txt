@@ -50,9 +50,10 @@ determine if it was an effective move.
 - (0/1) is_castling
   - Binary value representing whether the king on the square just castled.
 
-- (0/1) is_stalemate
+- (0/1) is_draw
   - Binary value on the king square that represents whether the game is
-    going to end in a stalemate.
+    going to end in a draw (stalemate, threefold repetition, insufficient
+    material, etc).
 
 - (0-n) is_under_attack
   - Range value representing whether the piece on this square is under

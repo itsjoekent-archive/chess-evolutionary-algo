@@ -31,6 +31,37 @@ export function cloneAlgorithm(
 	return JSON.parse(JSON.stringify(algorithm)) as EngineTypes.ChessAlgorithm;
 }
 
+export function binary(value: any) {
+	return !!value ? 1 : 0;
+}
+
+export function clearDynamicMemory(algorithm: EngineTypes.ChessAlgorithm) {
+	for (let i = 0; i < EngineConstants.DYNAMIC_MEMORY_SIZE; i++) {
+		const memoryIndex = i + EngineConstants.STATIC_MEMORY_SIZE;
+		algorithm.memory[memoryIndex].value = 0;
+	}
+}
+
+export function loopBoard(callback: (square: EngineTypes.Square) => void) {
+	const rows: EngineTypes.Row[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+	const columns: EngineTypes.Column[] = [
+		'1',
+		'2',
+		'3',
+		'4',
+		'5',
+		'6',
+		'7',
+		'8',
+	];
+
+	for (let row of rows) {
+		for (let col of columns) {
+			callback(`${row}${col}`);
+		}
+	}
+}
+
 // Pulled from here: https://stackoverflow.com/a/49434653
 export function randomBoxMuller(min: number, max: number, skew: number = 1) {
 	let u = 0,

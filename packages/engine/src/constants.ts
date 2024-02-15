@@ -1,5 +1,7 @@
 import * as EngineTypes from './types';
 
+export const MAX_ALGORITHM_DURATION_MS = 3000;
+
 export const MAX_TOKEN_DEPTH_PER_ITERATION = 3;
 export const MAX_TOKEN_DYNAMIC_ARGS_LENGTH = 8;
 
@@ -25,7 +27,7 @@ export const VARIABLE_NUMBER_RANGES: {
 	is_in_check: { min: 0, max: 1 },
 	is_in_checkmate: { min: 0, max: 1 },
 	is_castling: { min: 0, max: 1 },
-	is_stalemate: { min: 0, max: 1 },
+	is_draw: { min: 0, max: 1 },
 	is_under_attack: { min: 0, max: 64 },
 	is_under_attack_by_pawn: { min: 0, max: 64 },
 	is_under_attack_by_knight: { min: 0, max: 64 },
@@ -98,7 +100,7 @@ export const STANDARD_VARIABLE_IDS: EngineTypes.StandardVariableIds[] = [
 	'is_in_check',
 	'is_in_checkmate',
 	'is_castling',
-	'is_stalemate',
+	'is_draw',
 	'is_under_attack',
 	'is_under_attack_by_pawn',
 	'is_under_attack_by_knight',
@@ -193,3 +195,7 @@ export const FUNCTION_TOKEN_IDS: EngineTypes.FunctionTokenIds[] = [
 ];
 
 export const TOKEN_IDS = [...VARIABLE_IDS, ...FUNCTION_TOKEN_IDS];
+
+export const FITNESS_SCORES: Record<string, number> = {
+	TIMEOUT: -20,
+} as const;

@@ -1,5 +1,6 @@
 import { expect, test, describe } from 'vitest';
 import * as Engine from './index';
+import * as EngineConstants from './constants';
 import * as EngineUtils from './utils';
 
 function testManyTimes(
@@ -113,7 +114,7 @@ describe('traversing the algorithm tokens', () => {
 });
 
 describe('mutating algorithms', () => {
-	test.only('confirm successful mutation', () => {
+	test('confirm successful mutation', () => {
 		testManyTimes(() => {
 			const original = Engine.initializeNewAlgorithm();
 			const originalCopy = JSON.stringify(original);
@@ -137,3 +138,38 @@ describe('mutating algorithms', () => {
 		}, 5000); // need to run this enough times to catech edge cases with randomness
 	});
 });
+
+describe('evolving an algorithm', () => {
+	test('creates 9 offspring', () => {
+		testManyTimes(() => {
+			const init = Engine.initializeNewAlgorithm();
+			const initStringified = JSON.stringify(init);
+
+			const offspring = Engine.evolveAlgorithm(init, 9);
+
+			expect(offspring.length).toBe(10);
+			expect(initStringified).toEqual(JSON.stringify(offspring[0].algorithm));
+
+			const testSet = offspring.map((m) => JSON.stringify(m.algorithm));
+			expect(testSet.length).toBe(10);
+		});
+	});
+
+	test('clears the dynamic memory', () => {
+		const init = Engine.initializeNewAlgorithm();
+		init.memory[EngineConstants.STATIC_MEMORY_SIZE + 1].value = 1;
+
+		const offspring = Engine.evolveAlgorithm(init, 9);
+		offspring.forEach((m) =>
+			expect(
+				m.algorithm.memory[EngineConstants.STATIC_MEMORY_SIZE + 1].value,
+			).toBe(0),
+		);
+	});
+});
+
+// evaluateAlgorithm tests
+//  - hand craft an algorithm that leads to quick checkmate, confirm fitness applied correctly
+//  - timeout works
+
+// create seperate functions/tests for deriving the variables, picking the move, awarding fitness points

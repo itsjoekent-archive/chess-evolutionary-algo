@@ -22,3 +22,7 @@ notes
 --> run each game in a thread
 --> run stockfish in wasm
 --> use a cache for re-using variable calculations
+
+todo
+
+- promotion variable / handle promotions (always queen?)

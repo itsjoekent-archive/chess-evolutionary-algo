@@ -1,8 +1,8 @@
-export type Row = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H';
+export type Row = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
 export type Column = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
 export type Square = `${Row}${Column}`;
 
-export type Color = 'white' | 'black';
+export type Color = 'w' | 'b';
 
 export type Piece = 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king';
 export type PieceNoKing = Exclude<Piece, 'king'>;
@@ -20,7 +20,7 @@ export type StandardVariableIds =
 	| 'is_in_check'
 	| 'is_in_checkmate'
 	| 'is_castling'
-	| 'is_stalemate'
+	| 'is_draw'
 	| 'is_under_attack'
 	| `is_under_attack_by_${Piece}`
 	| 'captured_piece'
@@ -74,7 +74,7 @@ export type StandardVariable =
 			value: VariableBinaryValue;
 	  }
 	| {
-			id: 'is_stalemate';
+			id: 'is_draw';
 			value: VariableBinaryValue;
 	  }
 	| {
@@ -280,3 +280,17 @@ export type ChessAlgorithm = {
 	rootToken: Token;
 	memory: CustomVariable[];
 };
+
+export type MutationResult = {
+	algorithm: ChessAlgorithm;
+	memoryMutations: Record<CustomVariableId, number>;
+	tokenMutations: Token[];
+};
+
+export type EvaluationResult = Record<
+	Color,
+	{
+		algorithm: ChessAlgorithm;
+		fitnessScore: number;
+	}
+>;
