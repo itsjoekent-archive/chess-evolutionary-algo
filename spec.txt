@@ -29,6 +29,9 @@ determine if it was an effective move.
   - Binary value that is only 1 if there is a piece on the square that
     belongs to the opponent of the player running this algorithm.
 
+- (0/1) is_empty
+  - Binary value that is only 1 if there is no piece on the square.
+
 - (0/1) is_pawn, ...
   - Binary value representing whether the square is occupied by any pawn.
   - Exists for every piece type.
@@ -36,7 +39,18 @@ determine if it was an effective move.
 - (0/1) is_in_check
   - Binary value representing whether the king on the square is in check.
 
-- (0/n) is_under_attack
+- (0/1) is_in_checkmate
+  - Binary value representing whether the king on the square has been
+    checkmated.
+
+- (0/1) is_castling
+  - Binary value representing whether the king on the square just castled.
+
+- (0/1) is_stalemate
+  - Binary value on the king square that represents whether the game is
+    going to end in a stalemate.
+
+- (0-n) is_under_attack
   - Range value representing whether the piece on this square is under
     attack by any other piece(s).
 
@@ -80,15 +94,33 @@ determine if it was an effective move.
   - Range value representing how many possible moves the piece on this
     square has.
 
-- (0-8) adjacent_friendly_squares
+- (0-n) friendly_pawn_can_move_here, ...
+  - Range value representing how many pawns belonging to the player
+    running the algorithm can move onto this square.
+  - Exists for every piece type.
+
+- (0-n) opponent_pawn_can_move_here, ...
+  - Range value representing how many pawns belonging to the player
+    running the algorithm can move onto this square.
+  - Exists for every piece type.
+
+- (0-8) adjacent_friendly_pieces
   - Range value representing how many squares adjacent to this piece 
     belong to the same player.
+
+- (0-8) adjacent_friendly_pawns, ...
+  - Range value representing how many squares adjacent to this piece 
+    have a pawn and belong to the same player.
+  - Exists for every piece type.
 
 - (0-8) adjacent_opponent_squares
   - Range value representing how many squares adjacent to this piece 
     belong to the opposing player.
 
-
+- (0-8) adjacent_opponent_pawns, ...
+  - Range value representing how many squares adjacent to this piece 
+    have a pawn and belong to the opposing player.
+  - Exists for every piece type.
 
 === CUSTOM VARIABLES =====================================================
 
@@ -119,21 +151,24 @@ order to execute. Any token can be an argument for another token.
 `Sub()`    | 2     | Subtract two values
 `Mul()`    | 2     | Multiply two values
 `Div()`    | 2     | Divide two values
+`Sqrt()`   | 1     | Get the square root
 `Mod()`    | 2     | Find the remainder of a division
 `Pow()`    | 2     | Raise the base to a power
 `Round()`  | 1     | Round the value
 `Floor()`  | 1     | Round the value down
 `Ceil()`   | 1     | Round the value up
-`Max()`    | 2     | Return the larger value
-`Min()`    | 2     | Return the smaller value
-`Eq()`     | 2     | Return 1 if both values are equal
+`Max()`    | 2-8   | Return the largest value
+`Min()`    | 2-8   | Return the smallest value
+`Abs()`    | 1     | Get the absolute value
+`Eq()`     | 2-8   | Return 1 if all values are equal
+`Neq()`    | 2-8   | Return 1 if all values are not equal
 `Gt()`     | 2     | Return 1 if the left value is greater than the right
 `Gte()`    | 2     | Return 1 if the left value is greater than or equal
 `Lt()`     | 2     | Return 1 if the left value is less than the right
 `Lte()`    | 2     | Return 1 if the left value is less than or equal
 `Binary()` | 1     | Converts value to 0 or 1 (n >= 1)
-`And()`    | 2     | Returns 1 if both values are 1
-`Or()`     | 2     | Returns 1 if either value is 1
+`And()`    | 2     | Returns 1 if all values are 1
+`Or()`     | 2     | Returns 1 if any value is 1
 `If()`     | 3     | If the first value is 1, return the 2nd value
 `Write()`  | 2     | Write the left value into the custom variable
 
