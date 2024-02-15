@@ -1,11 +1,15 @@
 import * as EngineConstants from './constants';
 import * as EngineTypes from './types';
 
-export function isFunctionId(id: EngineTypes.AllPossibleTokenIds): id is EngineTypes.FunctionTokenIds {
+export function isFunctionId(
+	id: EngineTypes.AllPossibleTokenIds,
+): id is EngineTypes.FunctionTokenIds {
 	return (EngineConstants.FUNCTION_TOKEN_IDS as string[]).includes(id);
 }
 
-export function isVariableId(id: EngineTypes.AllPossibleTokenIds): id is EngineTypes.VariableId {
+export function isVariableId(
+	id: EngineTypes.AllPossibleTokenIds,
+): id is EngineTypes.VariableId {
 	return (EngineConstants.VARIABLE_IDS as string[]).includes(id);
 }
 
@@ -21,7 +25,9 @@ export function dotJoin(left: string, right: string) {
 	return `${left}${left.length ? '.' : ''}${right}`;
 }
 
-export function cloneAlgorithm(algorithm: EngineTypes.ChessAlgorithm): EngineTypes.ChessAlgorithm {
+export function cloneAlgorithm(
+	algorithm: EngineTypes.ChessAlgorithm,
+): EngineTypes.ChessAlgorithm {
 	return JSON.parse(JSON.stringify(algorithm)) as EngineTypes.ChessAlgorithm;
 }
 
@@ -53,7 +59,10 @@ export function shuffle<T>(array: T[]): T[] {
 		randomIndex = Math.floor(Math.random() * currentIndex);
 		currentIndex--;
 
-		[array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+		[array[currentIndex], array[randomIndex]] = [
+			array[randomIndex],
+			array[currentIndex],
+		];
 	}
 
 	return array;

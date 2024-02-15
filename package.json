@@ -2,7 +2,8 @@
 	"name": "chess-evolutionary-algo",
 	"description": "♟️ evolutionary algorithm to help learn how to play chess better",
 	"scripts": {
-		"prettier": ""
+		"prettier": "prettier --check .",
+		"prettier:write": "prettier --write ."
 	},
 	"dependencies": {
 		"chess.js": "^1.0.0-beta.7"

@@ -160,7 +160,10 @@ export const CUSTOM_VARIABLE_IDS: EngineTypes.CustomVariableId[] = Array.from(
 	(_, i) => `custom_${i}` as EngineTypes.CustomVariableId,
 );
 
-export const VARIABLE_IDS: EngineTypes.VariableId[] = [...STANDARD_VARIABLE_IDS, ...CUSTOM_VARIABLE_IDS];
+export const VARIABLE_IDS: EngineTypes.VariableId[] = [
+	...STANDARD_VARIABLE_IDS,
+	...CUSTOM_VARIABLE_IDS,
+];
 
 export const FUNCTION_TOKEN_IDS: EngineTypes.FunctionTokenIds[] = [
 	'add',

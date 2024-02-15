@@ -2,7 +2,11 @@ import { expect, test, describe } from 'vitest';
 import * as Engine from './index';
 import * as EngineUtils from './utils';
 
-function testManyTimes(callback: (done: () => void) => void, times: number = 100, onComplete?: () => void) {
+function testManyTimes(
+	callback: (done: () => void) => void,
+	times: number = 100,
+	onComplete?: () => void,
+) {
 	for (let i = 0; i < times; i++) {
 		const done = () => {
 			i = times;
@@ -87,7 +91,9 @@ describe('traversing the algorithm tokens', () => {
 			done({ id: 'adjacent_empty_squares' });
 		});
 
-		expect(JSON.stringify(algorithm.rootToken)).toEqual(JSON.stringify({ id: 'adjacent_empty_squares' }));
+		expect(JSON.stringify(algorithm.rootToken)).toEqual(
+			JSON.stringify({ id: 'adjacent_empty_squares' }),
+		);
 	});
 
 	test('setting new child value', () => {
@@ -96,9 +102,13 @@ describe('traversing the algorithm tokens', () => {
 			if (!!p) done({ id: 'adjacent_empty_squares' });
 		});
 
-		expect(JSON.stringify(algorithm.rootToken)).toContain(JSON.stringify({ id: 'adjacent_empty_squares' }));
+		expect(JSON.stringify(algorithm.rootToken)).toContain(
+			JSON.stringify({ id: 'adjacent_empty_squares' }),
+		);
 
-		expect(JSON.stringify(algorithm.rootToken)).not.toEqual(JSON.stringify({ id: 'adjacent_empty_squares' }));
+		expect(JSON.stringify(algorithm.rootToken)).not.toEqual(
+			JSON.stringify({ id: 'adjacent_empty_squares' }),
+		);
 	});
 });
 
@@ -113,11 +123,17 @@ describe('mutating algorithms', () => {
 			// Confirm 'mutateAlgorithm' has no side effects
 			expect(JSON.stringify(original)).toEqual(originalCopy);
 
-			expect(JSON.stringify(original.rootToken)).not.toEqual(JSON.stringify(mutated.algorithm.rootToken));
-			expect(JSON.stringify(original.memory)).not.toEqual(JSON.stringify(mutated.algorithm.memory));
+			expect(JSON.stringify(original.rootToken)).not.toEqual(
+				JSON.stringify(mutated.algorithm.rootToken),
+			);
+			expect(JSON.stringify(original.memory)).not.toEqual(
+				JSON.stringify(mutated.algorithm.memory),
+			);
 
 			const lastMutation = [...mutated.tokenMutations].pop();
-			expect(JSON.stringify(mutated.algorithm.rootToken)).to.contain(JSON.stringify(lastMutation));
+			expect(JSON.stringify(mutated.algorithm.rootToken)).to.contain(
+				JSON.stringify(lastMutation),
+			);
 		}, 5000); // need to run this enough times to catech edge cases with randomness
 	});
 });

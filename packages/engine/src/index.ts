@@ -4,7 +4,10 @@ import * as EngineConstants from './constants';
 import * as EngineTypes from './types';
 import * as EngineUtils from './utils';
 
-export function generateRandomToken(parent: EngineTypes.AllPossibleTokenIds | null = null, iterationCount: number = 0): EngineTypes.Token {
+export function generateRandomToken(
+	parent: EngineTypes.AllPossibleTokenIds | null = null,
+	iterationCount: number = 0,
+): EngineTypes.Token {
 	let tokenId: EngineTypes.FunctionTokenIds | EngineTypes.VariableId;
 
 	const functionBias =
@@ -18,9 +21,15 @@ export function generateRandomToken(parent: EngineTypes.AllPossibleTokenIds | nu
 
 	const randomValue = random(0, 1, true);
 	if (randomValue <= functionBias) {
-		tokenId = EngineConstants.FUNCTION_TOKEN_IDS[random(0, EngineConstants.FUNCTION_TOKEN_IDS.length - 1, false)];
+		tokenId =
+			EngineConstants.FUNCTION_TOKEN_IDS[
+				random(0, EngineConstants.FUNCTION_TOKEN_IDS.length - 1, false)
+			];
 	} else {
-		tokenId = EngineConstants.VARIABLE_IDS[random(0, EngineConstants.VARIABLE_IDS.length - 1, false)];
+		tokenId =
+			EngineConstants.VARIABLE_IDS[
+				random(0, EngineConstants.VARIABLE_IDS.length - 1, false)
+			];
 	}
 
 	if (EngineUtils.isVariableId(tokenId)) {
@@ -72,7 +81,11 @@ export function generateRandomToken(parent: EngineTypes.AllPossibleTokenIds | nu
 		case 'max':
 		case 'eq':
 		case 'neq': {
-			const length = EngineUtils.randomBoxMuller(2, EngineConstants.MAX_TOKEN_DYNAMIC_ARGS_LENGTH, 3);
+			const length = EngineUtils.randomBoxMuller(
+				2,
+				EngineConstants.MAX_TOKEN_DYNAMIC_ARGS_LENGTH,
+				3,
+			);
 
 			return {
 				id: tokenId,
@@ -114,12 +127,20 @@ export function generateRandomToken(parent: EngineTypes.AllPossibleTokenIds | nu
 
 export function walkAlgorithmTokens(
 	algorithm: EngineTypes.ChessAlgorithm,
-	callback: (parent: EngineTypes.Token | null, token: EngineTypes.Token, done: (replacer?: EngineTypes.Token) => void) => void,
+	callback: (
+		parent: EngineTypes.Token | null,
+		token: EngineTypes.Token,
+		done: (replacer?: EngineTypes.Token) => void,
+	) => void,
 	shuffle: boolean = false,
 ) {
 	let hasCompleted = false;
 
-	function step(parent: EngineTypes.Token | null, token: EngineTypes.Token, path: string) {
+	function step(
+		parent: EngineTypes.Token | null,
+		token: EngineTypes.Token,
+		path: string,
+	) {
 		if (hasCompleted) return;
 
 		const done = (replacer?: EngineTypes.Token) => {
@@ -139,9 +160,13 @@ export function walkAlgorithmTokens(
 			return;
 		}
 
-		const tokenChildKeysWithoutId = Object.keys(token).filter((key) => key !== 'id');
+		const tokenChildKeysWithoutId = Object.keys(token).filter(
+			(key) => key !== 'id',
+		);
 
-		const tokenChildKeys = shuffle ? EngineUtils.shuffle(tokenChildKeysWithoutId) : tokenChildKeysWithoutId;
+		const tokenChildKeys = shuffle
+			? EngineUtils.shuffle(tokenChildKeysWithoutId)
+			: tokenChildKeysWithoutId;
 
 		for (const key of tokenChildKeys) {
 			const value = token[key as keyof EngineTypes.Token] as any;
@@ -151,13 +176,27 @@ export function walkAlgorithmTokens(
 				for (let i = 0; i < tokenList.length; i++) {
 					const subtoken = tokenList[i];
 
-					if (EngineUtils.isVariableId(subtoken?.id) || EngineUtils.isFunctionId(subtoken?.id)) {
-						step(token, EngineUtils.dangerousTokenAssertion(subtoken), EngineUtils.dotJoin(path, `${key}[${i}]`));
+					if (
+						EngineUtils.isVariableId(subtoken?.id) ||
+						EngineUtils.isFunctionId(subtoken?.id)
+					) {
+						step(
+							token,
+							EngineUtils.dangerousTokenAssertion(subtoken),
+							EngineUtils.dotJoin(path, `${key}[${i}]`),
+						);
 					}
 				}
 			} else {
-				if (EngineUtils.isVariableId(value?.id) || EngineUtils.isFunctionId(value?.id)) {
-					step(token, EngineUtils.dangerousTokenAssertion(value), EngineUtils.dotJoin(path, key));
+				if (
+					EngineUtils.isVariableId(value?.id) ||
+					EngineUtils.isFunctionId(value?.id)
+				) {
+					step(
+						token,
+						EngineUtils.dangerousTokenAssertion(value),
+						EngineUtils.dotJoin(path, key),
+					);
 				}
 			}
 		}
@@ -173,7 +212,10 @@ export function initializeNewAlgorithm(): EngineTypes.ChessAlgorithm {
 		memory.push({
 			id: `custom_${i}`,
 			index: i,
-			value: random(EngineConstants.CUSTOM_VARIABLE_MIN, EngineConstants.CUSTOM_VARIABLE_MAX),
+			value: random(
+				EngineConstants.CUSTOM_VARIABLE_MIN,
+				EngineConstants.CUSTOM_VARIABLE_MAX,
+			),
 		});
 	}
 
@@ -197,7 +239,9 @@ type MutationResult = {
 	tokenMutations: EngineTypes.Token[];
 };
 
-export function mutateAlgorithm(algorithm: EngineTypes.ChessAlgorithm): MutationResult {
+export function mutateAlgorithm(
+	algorithm: EngineTypes.ChessAlgorithm,
+): MutationResult {
 	const rootTokenStringified = JSON.stringify(algorithm.rootToken);
 	const newAlgorithm = EngineUtils.cloneAlgorithm(algorithm);
 
@@ -208,20 +252,31 @@ export function mutateAlgorithm(algorithm: EngineTypes.ChessAlgorithm): Mutation
 	const tokenMutations: MutationResult['tokenMutations'] = [];
 
 	let memoryAttempts = 0;
-	while (memoryAttempts < 1000 && Object.keys(memoryMutations).length < totalMemoryMutations) {
-		const randomIndex = random(0, EngineConstants.STATIC_MEMORY_SIZE - 1, false);
+	while (
+		memoryAttempts < 1000 &&
+		Object.keys(memoryMutations).length < totalMemoryMutations
+	) {
+		const randomIndex = random(
+			0,
+			EngineConstants.STATIC_MEMORY_SIZE - 1,
+			false,
+		);
 
 		if (memoryMutations[`custom_${randomIndex}`]) {
 			memoryAttempts++;
 			continue;
 		}
 
-		const newMemoryValue = random(EngineConstants.CUSTOM_VARIABLE_MIN, EngineConstants.CUSTOM_VARIABLE_MAX);
+		const newMemoryValue = random(
+			EngineConstants.CUSTOM_VARIABLE_MIN,
+			EngineConstants.CUSTOM_VARIABLE_MAX,
+		);
 
 		if (newAlgorithm.memory[randomIndex].value !== newMemoryValue) {
 			newAlgorithm.memory[randomIndex].value = newMemoryValue;
 
-			memoryMutations[`custom_${randomIndex}`] = newAlgorithm.memory[randomIndex].value;
+			memoryMutations[`custom_${randomIndex}`] =
+				newAlgorithm.memory[randomIndex].value;
 		}
 
 		memoryAttempts++;
@@ -252,7 +307,10 @@ export function mutateAlgorithm(algorithm: EngineTypes.ChessAlgorithm): Mutation
 			true,
 		);
 
-		if (mutationToken && JSON.stringify(tempAlgorithm.rootToken) !== rootTokenStringified) {
+		if (
+			mutationToken &&
+			JSON.stringify(tempAlgorithm.rootToken) !== rootTokenStringified
+		) {
 			tokenMutations.push(mutationToken);
 			newAlgorithm.rootToken = tempAlgorithm.rootToken;
 		}
