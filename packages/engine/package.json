@@ -1,15 +1,16 @@
 {
-  "name": "@chess-evolutionary-algo/engine",
-  "main": "src/index.js",
-  "type": "module",
-  "scripts": {
-    "test": "vitest"
-  },
-  "devDependencies": {
-    "@types/lodash": "^4.14.202",
-    "@types/node": "^20.11.17"
-  },
-  "dependencies": {
-    "lodash": "^4.17.21"
-  }
+	"name": "@chess-evolutionary-algo/engine",
+	"main": "src/index.js",
+	"type": "module",
+	"scripts": {
+		"start": "npx tsx src/index.ts",
+		"test": "vitest"
+	},
+	"devDependencies": {
+		"@types/lodash": "^4.14.202",
+		"@types/node": "^20.11.17"
+	},
+	"dependencies": {
+		"lodash": "^4.17.21"
+	}
 }
