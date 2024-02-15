@@ -7,6 +7,10 @@ Version 1.0
 This is a system for developing an evolutionary algorithm that can
 discover the optimal moves to make in a chess game.
 
+The algorithm runs on each square of the chess board, assigning a point
+value to it. The total point value for an entire board, compared against 
+other possible board states, determines which move the computer makes.
+
 
 
 === VARIABLES ============================================================
