@@ -55,15 +55,6 @@ determine if it was an effective move.
     going to end in a draw (stalemate, threefold repetition, insufficient
     material, etc).
 
-- (0-n) is_under_attack
-  - Range value representing whether the piece on this square is under
-    attack by any other piece(s).
-
-- (0-n) is_under_attack_by_pawn, ...
-  - Range value representing whether the piece on this square is under
-    attack by any pawn(s).
-  - Exists for every piece type.
-
 - (0/1) captured_piece
   - Binary value representing whether the piece on this square just
     captured another piece.

@@ -1,3 +1,4 @@
+import { Chess } from 'chess.js';
 import { expect, test, describe } from 'vitest';
 import * as Engine from './index';
 import * as EngineConstants from './constants';
@@ -165,6 +166,179 @@ describe('evolving an algorithm', () => {
 				m.algorithm.memory[EngineConstants.STATIC_MEMORY_SIZE + 1].value,
 			).toBe(0),
 		);
+	});
+});
+
+describe('populating variables', () => {
+	test('should populate memory variables', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+		algorithm.memory[0].value = 1;
+
+		expect(
+			Engine.populateVariable('custom_0', algorithm, board, 'a1', 'w').value,
+		).toEqual(1);
+	});
+
+	test('should populate is_king', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('is_king', algorithm, board, 'e2', 'w').value,
+		).toEqual(0);
+		expect(
+			Engine.populateVariable('is_king', algorithm, board, 'e1', 'w').value,
+		).toEqual(1);
+	});
+
+	test('should populate is_empty', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('is_empty', algorithm, board, 'e1', 'w').value,
+		).toEqual(0);
+		expect(
+			Engine.populateVariable('is_empty', algorithm, board, 'e5', 'w').value,
+		).toEqual(1);
+	});
+
+	test('should populate is_self', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('is_self', algorithm, board, 'e1', 'w').value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable('is_self', algorithm, board, 'e1', 'b').value,
+		).toEqual(0);
+	});
+
+	test('should populate is_opponent', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('is_opponent', algorithm, board, 'e1', 'w').value,
+		).toEqual(0);
+		expect(
+			Engine.populateVariable('is_opponent', algorithm, board, 'e1', 'b').value,
+		).toEqual(1);
+	});
+
+	test('should populate captured_piece', () => {
+		const board = new Chess(
+			'rnb1k1nr/pppp1ppp/3bp3/4N2q/3PP3/2P5/PP2QPPP/RNB1KB1R b KQkq - 4 6',
+		);
+		board.move({ from: 'h5', to: 'e2' });
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('captured_piece', algorithm, board, 'e2', 'b')
+				.value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable('captured_piece', algorithm, board, 'e1', 'b')
+				.value,
+		).toEqual(0);
+	});
+
+	test('should populate captured_queen', () => {
+		const board = new Chess(
+			'rnb1k1nr/pppp1ppp/3bp3/4N2q/3PP3/2P5/PP2QPPP/RNB1KB1R b KQkq - 4 6',
+		);
+		board.move({ from: 'h5', to: 'e2' });
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('captured_queen', algorithm, board, 'e2', 'b')
+				.value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable('captured_queen', algorithm, board, 'e1', 'b')
+				.value,
+		).toEqual(0);
+	});
+
+	test('should populate lost_queen', () => {
+		const board = new Chess(
+			'rnb1k1nr/pppp1ppp/3bp3/4N2q/3PP3/2P5/PP2QPPP/RNB1KB1R b KQkq - 4 6',
+		);
+		board.move({ from: 'h5', to: 'e2' });
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('lost_queen', algorithm, board, 'e2', 'w').value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable('lost_queen', algorithm, board, 'e1', 'w').value,
+		).toEqual(0);
+	});
+
+	test('should populate is_in_check', () => {
+		const board = new Chess(
+			'rnb1k1nr/pppp1ppp/4p3/8/1b1PP2q/8/PPP1QPPP/RNB1KBNR w KQkq - 3 4',
+		);
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('is_in_check', algorithm, board, 'e1', 'w').value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable('is_in_check', algorithm, board, 'e2', 'w').value,
+		).toEqual(0);
+		expect(
+			Engine.populateVariable('is_in_check', algorithm, board, 'd1', 'w').value,
+		).toEqual(0);
+	});
+
+	test('should populate is_in_checkmate', () => {
+		const board = new Chess(
+			'rnbq1rk1/2ppnpQp/1p6/p2P4/2P1p3/5N2/PB2PPPP/RN2KB1R b KQ - 0 9',
+		);
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('is_in_checkmate', algorithm, board, 'g8', 'b').value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable('is_in_checkmate', algorithm, board, 'e1', 'w').value,
+		).toEqual(0);
+	});
+
+	test('should populate possible_moves', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable('possible_moves', algorithm, board, 'e2', 'w').value,
+		).toEqual(2);
+	});
+
+	test('should populate friendly_knight_can_move_here', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable(
+				'friendly_knight_can_move_here',
+				algorithm,
+				board,
+				'f3',
+				'w',
+			).value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable(
+				'friendly_knight_can_move_here',
+				algorithm,
+				board,
+				'f6',
+				'b',
+			).value,
+		).toEqual(0);
 	});
 });
 

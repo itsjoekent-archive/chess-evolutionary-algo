@@ -364,10 +364,12 @@ export function populateVariable(
 	selfColor: EngineTypes.Color,
 ): EngineTypes.Variable {
 	if (variableId.startsWith('custom_')) {
-		throw new Error();
+		return algorithm.memory.find(
+			(m) => m.id === variableId,
+		) as EngineTypes.Variable;
 	}
 
-  const oppositeColor: EngineTypes.Color = selfColor === 'b' ? 'w' : 'b';
+	const oppositeColor: EngineTypes.Color = selfColor === 'b' ? 'w' : 'b';
 
 	switch (variableId) {
 		case 'adjacent_empty_squares':
@@ -399,21 +401,6 @@ export function populateVariable(
 		case 'adjacent_opponent_queens':
 			throw new Error();
 		case 'adjacent_opponent_rooks':
-			throw new Error();
-
-		case 'can_attack':
-			throw new Error();
-		case 'can_attack_bishop':
-			throw new Error();
-		case 'can_attack_king':
-			throw new Error();
-		case 'can_attack_knight':
-			throw new Error();
-		case 'can_attack_pawn':
-			throw new Error();
-		case 'can_attack_queen':
-			throw new Error();
-		case 'can_attack_rook':
 			throw new Error();
 
 		case 'captured_piece':
@@ -542,17 +529,133 @@ export function populateVariable(
 				),
 			};
 
+		case 'possible_moves':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'from'),
+			};
+
 		case 'friendly_bishop_can_move_here':
-			throw new Error();
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.BISHOP,
+					color: selfColor,
+				}),
+			};
+
 		case 'friendly_king_can_move_here':
-			throw new Error();
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.KING,
+					color: selfColor,
+				}),
+			};
+
 		case 'friendly_knight_can_move_here':
-			throw new Error();
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.KNIGHT,
+					color: selfColor,
+				}),
+			};
+
 		case 'friendly_pawn_can_move_here':
-			throw new Error();
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.PAWN,
+					color: selfColor,
+				}),
+			};
+
 		case 'friendly_queen_can_move_here':
-			throw new Error();
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.QUEEN,
+					color: selfColor,
+				}),
+			};
+
 		case 'friendly_rook_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.ROOK,
+					color: selfColor,
+				}),
+			};
+
+		case 'opponent_bishop_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.BISHOP,
+					color: oppositeColor,
+				}),
+			};
+
+		case 'opponent_king_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.KING,
+					color: oppositeColor,
+				}),
+			};
+
+		case 'opponent_knight_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.KNIGHT,
+					color: oppositeColor,
+				}),
+			};
+
+		case 'opponent_pawn_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.PAWN,
+					color: oppositeColor,
+				}),
+			};
+
+		case 'opponent_queen_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.QUEEN,
+					color: oppositeColor,
+				}),
+			};
+
+		case 'opponent_rook_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, square, 'to', {
+					type: ChessHelpers.ROOK,
+					color: oppositeColor,
+				}),
+			};
+
+		case 'can_attack':
+			throw new Error();
+		case 'can_attack_bishop':
+			throw new Error();
+		case 'can_attack_king':
+			throw new Error();
+		case 'can_attack_knight':
+			throw new Error();
+		case 'can_attack_pawn':
+			throw new Error();
+		case 'can_attack_queen':
+			throw new Error();
+		case 'can_attack_rook':
 			throw new Error();
 
 		case 'is_bishop':
@@ -611,7 +714,9 @@ export function populateVariable(
 			return {
 				id: variableId,
 				value: EngineUtils.binary(
-					ChessHelpers.isKing(board, square) && board.inCheck(),
+					ChessHelpers.isKing(board, square) &&
+						board.inCheck() &&
+						board.turn() === board.get(square)?.color,
 				),
 			};
 
@@ -619,7 +724,9 @@ export function populateVariable(
 			return {
 				id: variableId,
 				value: EngineUtils.binary(
-					ChessHelpers.isKing(board, square) && board.isCheckmate(),
+					ChessHelpers.isKing(board, square) &&
+						board.isCheckmate() &&
+						board.turn() === board.get(square)?.color,
 				),
 			};
 
@@ -634,7 +741,7 @@ export function populateVariable(
 		case 'is_empty':
 			return {
 				id: variableId,
-				value: EngineUtils.binary(ChessHelpers.hasPiece(board, square)),
+				value: EngineUtils.binary(!ChessHelpers.hasPiece(board, square)),
 			};
 
 		case 'is_self':
@@ -652,37 +759,6 @@ export function populateVariable(
 					!ChessHelpers.isPieceColor(board, square, selfColor),
 				),
 			};
-
-		case 'possible_moves':
-			throw new Error();
-
-		case 'is_under_attack':
-			throw new Error();
-		case 'is_under_attack_by_bishop':
-			throw new Error();
-		case 'is_under_attack_by_king':
-			throw new Error();
-		case 'is_under_attack_by_knight':
-			throw new Error();
-		case 'is_under_attack_by_pawn':
-			throw new Error();
-		case 'is_under_attack_by_queen':
-			throw new Error();
-		case 'is_under_attack_by_rook':
-			throw new Error();
-
-		case 'opponent_bishop_can_move_here':
-			throw new Error();
-		case 'opponent_king_can_move_here':
-			throw new Error();
-		case 'opponent_knight_can_move_here':
-			throw new Error();
-		case 'opponent_pawn_can_move_here':
-			throw new Error();
-		case 'opponent_queen_can_move_here':
-			throw new Error();
-		case 'opponent_rook_can_move_here':
-			throw new Error();
 
 		default:
 			throw new Error(`${variableId} was not handled`);

@@ -98,3 +98,37 @@ export function checkCapture(
 
 	return true;
 }
+
+export function filterMoves(
+	board: Chess,
+	square: Square,
+	direction: 'to' | 'from',
+	filters?: {
+		color?: Piece['color'];
+		type?: Piece['type'];
+		isCapturing?: boolean;
+	},
+): number {
+	let moveCount: number = 0;
+	const moves = board.moves({ verbose: true });
+
+	for (const move of moves) {
+		if ((direction === 'to' && move.to === square) || (direction === 'from' && move.from === square)) {
+			if (filters?.color && move.color !== filters.color) {
+				continue;
+			}
+
+			if (filters?.type && move.piece !== filters.type) {
+				continue;
+			}
+
+			if (filters?.isCapturing && !hasPiece(board, move.to)){
+				continue;
+			}
+
+			moveCount++;
+		}
+	}
+
+	return moveCount;
+}

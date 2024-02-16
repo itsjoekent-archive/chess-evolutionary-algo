@@ -14,6 +14,14 @@ To get a deeper insight on how this process has been implemented, see [`SPEC.txt
 
 ## Local Development
 
+```sh
+$ nvm install && nvm use
+$ npm ci
+
+# Run engine tests
+$ npm test -w @chess-evolutionary-algo/engine
+```
+
 ## Running In The Cloud
 
 ## License & Contributing

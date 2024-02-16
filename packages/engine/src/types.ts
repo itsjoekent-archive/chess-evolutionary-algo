@@ -21,8 +21,6 @@ export type StandardVariableIds =
 	| 'is_in_checkmate'
 	| 'is_castling'
 	| 'is_draw'
-	| 'is_under_attack'
-	| `is_under_attack_by_${Piece}`
 	| 'captured_piece'
 	| `captured_${PieceNoKing}`
 	| 'lost_piece'
@@ -76,14 +74,6 @@ export type StandardVariable =
 	| {
 			id: 'is_draw';
 			value: VariableBinaryValue;
-	  }
-	| {
-			id: 'is_under_attack';
-			value: VariableRangeValue;
-	  }
-	| {
-			id: `is_under_attack_by_${Piece}`;
-			value: VariableRangeValue;
 	  }
 	| {
 			id: 'captured_piece';
