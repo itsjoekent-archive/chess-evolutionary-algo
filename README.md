@@ -34,3 +34,4 @@ notes
 todo
 
 - promotion variable / handle promotions (always queen?)
+- variable for how many pieces remain (both sides?)

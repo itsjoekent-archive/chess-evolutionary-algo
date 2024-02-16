@@ -5,11 +5,15 @@ Version 1.0
 === SUMMARY ==============================================================
 
 This is a system for developing an evolutionary algorithm that can
-discover the optimal moves to make in a chess game.
+discover the optimal move to make in a chess game.
 
-The algorithm runs on each square of the chess board, assigning a point
-value to it. The total point value for an entire board, compared against 
-other possible board states, determines which move the computer makes.
+On each turn, one algorithm (the "board" algorithm) runs on each square of 
+the chess board, assigning a point value to it. It will then repeat the 
+process on a copy of the board for each valid move that was available.
+
+A second algorithm (the "movement" algorithm) will then iterate over all 
+of the moves made, and will rank each move, or decide to continue 
+iterating down the search tree.
 
 
 
@@ -20,103 +24,88 @@ The variables should avoid adding strategic biases, for example, they
 should not award "point values" to pieces. Variables are are purely for 
 representing core game rules, such as being in check.
 
-All variables are evaluated into integers.
+- All variables are evaluated into integers.
+- All variables are evaluated in the context of the current turn. Two
+distinct algorithms will be assigned a color, but each board algorithm 
+will always run for both turns, for both players.
+- `[B]` indicates the variable is available for the board algorithm.
+- `[M]` indicates the variable is available for the move algorithm.
+- `(0/1)` indicates the variable value will always be a binary integer.
+- `(n)`, `(0-n)` indicates the variable value can be any value or any 
+  value within a range.
+- `${...}` indicates this variable has a version for the entire enum space.
 
-All variables are evaluated after the move has been made, in order to
-determine if it was an effective move.
+is_self [B] (0/1) :: 1 if there is a piece on the square that belongs to 
+the player whose turn it is.
 
-- (0/1) is_self
-  - Binary value that is only 1 if there is a piece on the square that
-    belongs to the player running the algorithm.
+is_opponent [B] (0/1) :: 1 if there is a piece on the square that does not
+belong to the player whose turn it is.
 
-- (0/1) is_opponent
-  - Binary value that is only 1 if there is a piece on the square that
-    belongs to the opponent of the player running this algorithm.
+is_empty [B] (0/1) :: 1 if there is no piece on the square.
 
-- (0/1) is_empty
-  - Binary value that is only 1 if there is no piece on the square.
+is_${piece} [B] (0/1) :: 1 if the square is occupied by ${piece}.
 
-- (0/1) is_pawn, ...
-  - Binary value representing whether the square is occupied by any pawn.
-  - Exists for every piece type.
+is_in_check [B] [M] (0/1) :: 1 if the player is in check.
 
-- (0/1) is_in_check
-  - Binary value representing whether the king on the square is in check.
+is_in_checkmate [B] [M] (0/1) :: 1 if the player is in checkmate.
 
-- (0/1) is_in_checkmate
-  - Binary value representing whether the king on the square has been
-    checkmated.
+is_draw [B] [M] (0/1) :: 1 if he game is going to end in a draw 
+(stalemate, threefold repetition, insufficient material, etc).
 
-- (0/1) is_castling
-  - Binary value representing whether the king on the square just castled.
+castled_${side} [B] (0/1) :: 1 if the king on this square castled in the
+previous move.
 
-- (0/1) is_draw
-  - Binary value on the king square that represents whether the game is
-    going to end in a draw (stalemate, threefold repetition, insufficient
-    material, etc).
+was_captured [B] (0/1) :: 1 if the last move captured a piece on this
+square.
 
-- (0/1) captured_piece
-  - Binary value representing whether the piece on this square just
-    captured another piece.
-  - This is always a "self" value.
+${piece}_was_captured [B] (0/1) :: 1 if the last move captured a ${piece}
+on this square.
 
-- (0/1) captured_pawn, ...
-  - Binary value representing whether the piece on this square just
-    captured another pawn.
-  - Exists for every piece type.
-  - This is always a "self" value.
+possible_moves [B] (0-n) :: n is equal to how many moves the piece on this
+square can make.
 
-- (0/1) lost_piece
-  - Binary value representing whether the piece on this square was just 
-    captured by another piece.
-  - This is always a "self" value.
+can_capture [B] (0-n) :: n is equal to how many moves the piece on this
+square can make that will capture another piece.
 
-- (0/1) lost_pawn, ...
-  - Binary value representing whether the piece on this square was 
-    a pawn and was just captured by another piece.
-  - Exists for every piece type.
-  - This is always a "self" value.
+can_capture_${piece} [B] (0-n) :: n is equal to how many moves the piece 
+on this square can make that will capture another ${piece}.
 
-- (0-n) can_attack
-  - Range value representing how many other pieces that the piece on this
-    square can attack.
+can_move_here [B] (0/1) :: 1 if any piece can move to this square.
 
-- (0-n) can_attack_pawn, ...
-  - Range value representing how many other pawns that the piece on this
-    square can attack.
-  - Exists for every piece type.
+${piece}_can_move_here [B] (0-n) :: n is equal to the amount of ${piece}'s
+that can move to this square.
 
-- (0-n) possible_moves
-  - Range value representing how many possible moves the piece on this
-    square has.
+depth [M] (1-32) :: n is equal to the current depth of the tree search.
 
-- (0-n) friendly_pawn_can_move_here, ...
-  - Range value representing how many pawns belonging to the player
-    running the algorithm can move onto this square.
-  - Exists for every piece type.
+first_iteration_pre_move_total [M] (n) :: n is equal to the total square
+points awarded by the evaluation algorithm on a board prior to making any
+move. This value is fixed to the first time the evaluation algorithm runs.
 
-- (0-n) opponent_pawn_can_move_here, ...
-  - Range value representing how many pawns belonging to the player
-    running the algorithm can move onto this square.
-  - Exists for every piece type.
+first_iteration_post_move_total [M] (n) :: n is equal to the total square
+points awarded by the evaluation algorithm on a board after making any
+move. This value is fixed to the first time the evaluation algorithm runs.
 
-- (0-8) adjacent_friendly_pieces
-  - Range value representing how many squares adjacent to this piece 
-    belong to the same player.
+prev_iteration_pre_move_total [M] (n) :: n is equal to the total square
+points awarded by the evaluation algorithm on a board prior to making any
+move. This value is fixed to the prior the evaluation algorithm run. If
+there is no prior algorithm run, n is equal to zero.
 
-- (0-8) adjacent_friendly_pawns, ...
-  - Range value representing how many squares adjacent to this piece 
-    have a pawn and belong to the same player.
-  - Exists for every piece type.
+prev_iteration_post_move_total [M] (n) :: n is equal to the total square
+points awarded by the evaluation algorithm on a board after making any
+move. This value is fixed to the prior the evaluation algorithm run. If
+there is no prior algorithm run, n is equal to zero.
 
-- (0-8) adjacent_opponent_squares
-  - Range value representing how many squares adjacent to this piece 
-    belong to the opposing player.
+this_iteration_pre_move_total [M] (n) :: n is equal to the total square
+points awarded by the evaluation algorithm on a board prior to making any
+move. This value is fixed to the most recent time the evaluation algorithm
+was run.
 
-- (0-8) adjacent_opponent_pawns, ...
-  - Range value representing how many squares adjacent to this piece 
-    have a pawn and belong to the opposing player.
-  - Exists for every piece type.
+this_iteration_post_move_total [M] (n) :: n is equal to the total square
+points awarded by the evaluation algorithm on a board after making any
+move. This value is fixed to the most recent time the evaluation algorithm 
+was run.
+
+
 
 === CUSTOM VARIABLES =====================================================
 
@@ -125,7 +114,7 @@ custom variables. 36 are reserved as static values that are set when the
 algorithm is first created. They can only be modified through evolution 
 and mutation.
 
-The remaining 12 variables can be set at runtime. Runtime variables are
+The remaining 24 variables can be set at runtime. Runtime variables are
 set to 0 at the start of a game, and reset between games.
 
 Each custom variable is an integer that can range from -99 to +99.
@@ -178,21 +167,24 @@ a standalone token.
 The process of iterating on the evolutionary algorithm requires going 
 through the following steps to generate a fitness score for the algorithm,
 
-1. Initiate an algorithm with a random token, assign a color to play (black 
-or white), and start a new game of chess.
-2. Create a new instance of Stockfish at the lowest level.
-3. On the algorithms turn,
-  A. Loop over each piece.
-  B. Get all moves available for each piece.
-  C. Create copies of the game board that represent each possible move.
-    1. Loop over each square on the board.
-    2. Calculate game variables for that square.
-    3. Run the algorithm for the square.
-    4. Aggregate all of the scores.
-  D. Filter out all non-negative scores, pick the move with the highest
-     score, repeat step 3. If there is a tie, pick at random.
-  E. If there are no positive scores, or the game reached an end state,
-     the simulation has ended and fitness is calculated for evolution.
+1. Initiate an evaluation algorithm and movement algorithm with random 
+tokens, assign a color to play (black or white), and repeat to get an 
+opponent to play. 
+2. Start a new game of chess.
+3. On each turn,
+  A. Loop over each square, run the evaluation algorithm, aggregate the
+  total for the board.
+  B. Get all moves available, create copies of the game board that 
+  represent each possible move.
+    I. Loop over each square, run the evaluation algorithm, aggregate the
+  total for the board.
+  C. Run the movement algorithm for each move evaluated.
+    I. If the algorithm returns zero, continue down this branch of
+    possible moves by going back to step 3.
+    II. If the algorithm returns a non-zero number, record this as the
+    score for this move, regardless of the current depth of search.
+    III. Once all move evaluations have completed, sort the scores 
+    assigned to each move, pick the highest scored move.
 
 Fitness points are awarded as follows,
 * `-1` if there is a tie when evaluating moves.
@@ -200,15 +192,15 @@ Fitness points are awarded as follows,
 * `+1` for capturing a piece.
 * `-1` for losing a piece.
 * `+3` for putting the king in check.
-* `+3` for a draw (three-fold repition, etc).
+* `+5` for forcing draw (three-fold repition, etc).
+* `+1` for being forced into a draw.
 * `-10` for losing by checkmate.
 * `+20` for checkmating.
-* `-20` for running out of time.
+* `-20` for running out of time when evaluating moves.
 
 Once each algorithm has completed playing the game, the algorithms are
-sorted by fitness points awarded. The top 25% will create offspring and
+sorted by fitness points awarded. The top algorithms will create offspring and
 mutate each child. Mutation involves adding, removing, or replacing a 
-token, or modifying the value of one of the custom variables.
+token, and modifying the value of one of the custom variables.
 
-This process repeats until an optimal solution is discovered, with
-increasingly more difficult versions of Stockfish as the opponent.
+This process repeats until an optimal solution is discovered.

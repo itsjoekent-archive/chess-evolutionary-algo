@@ -64,11 +64,25 @@ export function isDraw(board: Chess) {
 	return board.isDraw() || board.isStalemate() || board.isThreefoldRepetition();
 }
 
+export function hasCastled(board: Chess, square: Square, side: 'kingside' | 'queenside') {
+	if (!isKing(board, square)) {
+		return false;
+	}
+
+	const lastMove = getLastMove(board);
+	if (!lastMove) {
+		return false;
+	}
+
+	return side === 'kingside'
+		? lastMove.flags.includes(FLAG_KSIDE_CASTLE)
+		: lastMove.flags.includes(FLAG_QSIDE_CASTLE);
+}
+
 export function checkCapture(
 	board: Chess,
 	square: Square,
 	filters?: {
-		color?: Piece['color'];
 		type?: Piece['type'];
 	},
 ) {
@@ -88,10 +102,6 @@ export function checkCapture(
 
 	const priorBoard = new Chess(lastMove.before);
 
-	if (filters.color && !isPieceColor(priorBoard, square, filters.color)) {
-		return false;
-	}
-
 	if (filters.type && !isPieceType(priorBoard, square, filters.type)) {
 		return false;
 	}
@@ -101,33 +111,41 @@ export function checkCapture(
 
 export function filterMoves(
 	board: Chess,
-	square: Square,
-	direction: 'to' | 'from',
 	filters?: {
-		color?: Piece['color'];
+		toSquare?: Square;
+		fromSquare?: Square;
 		type?: Piece['type'];
-		isCapturing?: boolean;
+		isCapturing?: boolean | Piece['type'];
 	},
 ): number {
 	let moveCount: number = 0;
 	const moves = board.moves({ verbose: true });
 
 	for (const move of moves) {
-		if ((direction === 'to' && move.to === square) || (direction === 'from' && move.from === square)) {
-			if (filters?.color && move.color !== filters.color) {
-				continue;
-			}
-
-			if (filters?.type && move.piece !== filters.type) {
-				continue;
-			}
-
-			if (filters?.isCapturing && !hasPiece(board, move.to)){
-				continue;
-			}
-
-			moveCount++;
+		if (filters?.toSquare && move.to !== filters?.toSquare) {
+			continue;
 		}
+
+		if (filters?.fromSquare && move.to !== filters?.fromSquare) {
+			continue;
+		}
+
+		if (filters?.type && move.piece !== filters.type) {
+			continue;
+		}
+
+		if (filters?.isCapturing && !hasPiece(board, move.to)) {
+			continue;
+		}
+
+		if (
+			typeof filters?.isCapturing === 'string' &&
+			!isPieceType(board, move.to, filters.isCapturing)
+		) {
+			continue;
+		}
+
+		moveCount++;
 	}
 
 	return moveCount;

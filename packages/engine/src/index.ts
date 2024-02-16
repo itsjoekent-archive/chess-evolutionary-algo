@@ -369,381 +369,9 @@ export function populateVariable(
 		) as EngineTypes.Variable;
 	}
 
-	const oppositeColor: EngineTypes.Color = selfColor === 'b' ? 'w' : 'b';
+	const opponentColor: EngineTypes.Color = selfColor === 'b' ? 'w' : 'b';
 
 	switch (variableId) {
-		case 'adjacent_empty_squares':
-			throw new Error();
-		case 'adjacent_friendly_bishops':
-			throw new Error();
-		case 'adjacent_friendly_king':
-			throw new Error();
-		case 'adjacent_friendly_knights':
-			throw new Error();
-		case 'adjacent_friendly_pawns':
-			throw new Error();
-		case 'adjacent_friendly_pieces':
-			throw new Error();
-		case 'adjacent_friendly_queens':
-			throw new Error();
-		case 'adjacent_friendly_rooks':
-			throw new Error();
-		case 'adjacent_opponent_bishops':
-			throw new Error();
-		case 'adjacent_opponent_king':
-			throw new Error();
-		case 'adjacent_opponent_knights':
-			throw new Error();
-		case 'adjacent_opponent_pawns':
-			throw new Error();
-		case 'adjacent_opponent_pieces':
-			throw new Error();
-		case 'adjacent_opponent_queens':
-			throw new Error();
-		case 'adjacent_opponent_rooks':
-			throw new Error();
-
-		case 'captured_piece':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, { color: oppositeColor }),
-				),
-			};
-
-		case 'captured_bishop':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: oppositeColor,
-						type: ChessHelpers.BISHOP,
-					}),
-				),
-			};
-
-		case 'captured_knight':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: oppositeColor,
-						type: ChessHelpers.KNIGHT,
-					}),
-				),
-			};
-
-		case 'captured_pawn':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: oppositeColor,
-						type: ChessHelpers.PAWN,
-					}),
-				),
-			};
-
-		case 'captured_queen':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: oppositeColor,
-						type: ChessHelpers.QUEEN,
-					}),
-				),
-			};
-
-		case 'captured_rook':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: oppositeColor,
-						type: ChessHelpers.ROOK,
-					}),
-				),
-			};
-
-		case 'lost_piece':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, { color: selfColor }),
-				),
-			};
-
-		case 'lost_bishop':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: selfColor,
-						type: ChessHelpers.BISHOP,
-					}),
-				),
-			};
-
-		case 'lost_knight':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: selfColor,
-						type: ChessHelpers.KNIGHT,
-					}),
-				),
-			};
-
-		case 'lost_pawn':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: selfColor,
-						type: ChessHelpers.PAWN,
-					}),
-				),
-			};
-
-		case 'lost_queen':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: selfColor,
-						type: ChessHelpers.QUEEN,
-					}),
-				),
-			};
-
-		case 'lost_rook':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.checkCapture(board, square, {
-						color: selfColor,
-						type: ChessHelpers.ROOK,
-					}),
-				),
-			};
-
-		case 'possible_moves':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'from'),
-			};
-
-		case 'friendly_bishop_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.BISHOP,
-					color: selfColor,
-				}),
-			};
-
-		case 'friendly_king_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.KING,
-					color: selfColor,
-				}),
-			};
-
-		case 'friendly_knight_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.KNIGHT,
-					color: selfColor,
-				}),
-			};
-
-		case 'friendly_pawn_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.PAWN,
-					color: selfColor,
-				}),
-			};
-
-		case 'friendly_queen_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.QUEEN,
-					color: selfColor,
-				}),
-			};
-
-		case 'friendly_rook_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.ROOK,
-					color: selfColor,
-				}),
-			};
-
-		case 'opponent_bishop_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.BISHOP,
-					color: oppositeColor,
-				}),
-			};
-
-		case 'opponent_king_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.KING,
-					color: oppositeColor,
-				}),
-			};
-
-		case 'opponent_knight_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.KNIGHT,
-					color: oppositeColor,
-				}),
-			};
-
-		case 'opponent_pawn_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.PAWN,
-					color: oppositeColor,
-				}),
-			};
-
-		case 'opponent_queen_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.QUEEN,
-					color: oppositeColor,
-				}),
-			};
-
-		case 'opponent_rook_can_move_here':
-			return {
-				id: variableId,
-				value: ChessHelpers.filterMoves(board, square, 'to', {
-					type: ChessHelpers.ROOK,
-					color: oppositeColor,
-				}),
-			};
-
-		case 'can_attack':
-			throw new Error();
-		case 'can_attack_bishop':
-			throw new Error();
-		case 'can_attack_king':
-			throw new Error();
-		case 'can_attack_knight':
-			throw new Error();
-		case 'can_attack_pawn':
-			throw new Error();
-		case 'can_attack_queen':
-			throw new Error();
-		case 'can_attack_rook':
-			throw new Error();
-
-		case 'is_bishop':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(ChessHelpers.isBishop(board, square)),
-			};
-
-		case 'is_king':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(ChessHelpers.isKing(board, square)),
-			};
-
-		case 'is_knight':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(ChessHelpers.isKnight(board, square)),
-			};
-
-		case 'is_pawn':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(ChessHelpers.isPawn(board, square)),
-			};
-
-		case 'is_queen':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(ChessHelpers.isQueen(board, square)),
-			};
-
-		case 'is_rook':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(ChessHelpers.isRook(board, square)),
-			};
-
-		case 'is_castling': {
-			if (!ChessHelpers.isKing(board, square)) {
-				return { id: variableId, value: 0 };
-			}
-
-			const lastMove = ChessHelpers.getLastMove(board);
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					lastMove &&
-						(lastMove.flags.includes(ChessHelpers.FLAG_KSIDE_CASTLE) ||
-							lastMove.flags.includes(ChessHelpers.FLAG_QSIDE_CASTLE)),
-				),
-			};
-		}
-
-		case 'is_in_check':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.isKing(board, square) &&
-						board.inCheck() &&
-						board.turn() === board.get(square)?.color,
-				),
-			};
-
-		case 'is_in_checkmate':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.isKing(board, square) &&
-						board.isCheckmate() &&
-						board.turn() === board.get(square)?.color,
-				),
-			};
-
-		case 'is_draw':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(
-					ChessHelpers.isKing(board, square) && ChessHelpers.isDraw(board),
-				),
-			};
-
-		case 'is_empty':
-			return {
-				id: variableId,
-				value: EngineUtils.binary(!ChessHelpers.hasPiece(board, square)),
-			};
-
 		case 'is_self':
 			return {
 				id: variableId,
@@ -756,8 +384,262 @@ export function populateVariable(
 			return {
 				id: variableId,
 				value: EngineUtils.binary(
-					!ChessHelpers.isPieceColor(board, square, selfColor),
+					ChessHelpers.isPieceColor(board, square, opponentColor),
 				),
+			};
+
+		case 'is_empty':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(!ChessHelpers.hasPiece(board, square)),
+			};
+
+		case 'is_pawn':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.isPawn(board, square)),
+			};
+
+		case 'is_knight':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.isKnight(board, square)),
+			};
+
+		case 'is_bishop':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.isBishop(board, square)),
+			};
+
+		case 'is_rook':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.isRook(board, square)),
+			};
+
+		case 'is_queen':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.isQueen(board, square)),
+			};
+
+		case 'is_king':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.isKing(board, square)),
+			};
+
+		case 'is_in_check':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(board.inCheck()),
+			};
+
+		case 'is_in_checkmate':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(board.isCheckmate()),
+			};
+
+		case 'is_draw':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.isDraw(board)),
+			};
+
+		case 'castled_king_side':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(
+					ChessHelpers.hasCastled(board, square, 'kingside'),
+				),
+			};
+
+		case 'castled_queen_side':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(
+					ChessHelpers.hasCastled(board, square, 'queenside'),
+				),
+			};
+
+		case 'was_captured':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.checkCapture(board, square)),
+			};
+
+		case 'pawn_was_captured':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(
+					ChessHelpers.checkCapture(board, square, {
+						type: ChessHelpers.PAWN,
+					}),
+				),
+			};
+
+		case 'knight_was_captured':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(
+					ChessHelpers.checkCapture(board, square, {
+						type: ChessHelpers.KNIGHT,
+					}),
+				),
+			};
+
+		case 'bishop_was_captured':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(
+					ChessHelpers.checkCapture(board, square, {
+						type: ChessHelpers.BISHOP,
+					}),
+				),
+			};
+
+		case 'rook_was_captured':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(
+					ChessHelpers.checkCapture(board, square, {
+						type: ChessHelpers.ROOK,
+					}),
+				),
+			};
+
+		case 'queen_was_captured':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(
+					ChessHelpers.checkCapture(board, square, {
+						type: ChessHelpers.QUEEN,
+					}),
+				),
+			};
+
+		case 'possible_moves':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, { fromSquare: square }),
+			};
+
+		case 'can_capture':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					fromSquare: square,
+					isCapturing: true,
+				}),
+			};
+
+		case 'can_capture_pawn':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					fromSquare: square,
+					isCapturing: ChessHelpers.PAWN,
+				}),
+			};
+
+		case 'can_capture_knight':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					fromSquare: square,
+					isCapturing: ChessHelpers.KNIGHT,
+				}),
+			};
+
+		case 'can_capture_bishop':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					fromSquare: square,
+					isCapturing: ChessHelpers.BISHOP,
+				}),
+			};
+
+		case 'can_capture_rook':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					fromSquare: square,
+					isCapturing: ChessHelpers.ROOK,
+				}),
+			};
+
+		case 'can_capture_queen':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					fromSquare: square,
+					isCapturing: ChessHelpers.QUEEN,
+				}),
+			};
+
+		case 'can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					toSquare: square,
+				}),
+			};
+
+		case 'pawn_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					toSquare: square,
+					type: ChessHelpers.PAWN,
+				}),
+			};
+
+		case 'knight_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					toSquare: square,
+					type: ChessHelpers.KNIGHT,
+				}),
+			};
+		
+		case 'bishop_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					toSquare: square,
+					type: ChessHelpers.BISHOP,
+				}),
+			};
+
+		case 'rook_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					toSquare: square,
+					type: ChessHelpers.ROOK,
+				}),
+			};
+
+		case 'queen_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					toSquare: square,
+					type: ChessHelpers.QUEEN,
+				}),
+			};
+
+		case 'king_can_move_here':
+			return {
+				id: variableId,
+				value: ChessHelpers.filterMoves(board, {
+					toSquare: square,
+					type: ChessHelpers.KING,
+				}),
 			};
 
 		default:

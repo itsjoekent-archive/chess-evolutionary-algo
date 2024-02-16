@@ -19,24 +19,23 @@ export type StandardVariableIds =
 	| `is_${Piece}`
 	| 'is_in_check'
 	| 'is_in_checkmate'
-	| 'is_castling'
 	| 'is_draw'
-	| 'captured_piece'
-	| `captured_${PieceNoKing}`
-	| 'lost_piece'
-	| `lost_${PieceNoKing}`
-	| 'can_attack'
-	| `can_attack_${Piece}`
+	| 'castled_king_side'
+	| 'castled_queen_side'
+	| 'was_captured'
+	| `${PieceNoKing}_was_captured`
 	| 'possible_moves'
-	| `friendly_${Piece}_can_move_here`
-	| `opponent_${Piece}_can_move_here`
-	| 'adjacent_empty_squares'
-	| 'adjacent_friendly_pieces'
-	| `adjacent_friendly_${PieceNoKing}s`
-	| 'adjacent_friendly_king'
-	| 'adjacent_opponent_pieces'
-	| `adjacent_opponent_${PieceNoKing}s`
-	| 'adjacent_opponent_king';
+	| 'can_capture'
+	| `can_capture_${PieceNoKing}`
+	| 'can_move_here'
+	| `${Piece}_can_move_here`
+	| 'depth'
+	| 'first_iteration_pre_move_total'
+	| 'first_iteration_post_move_total'
+	| 'prev_iteration_pre_move_total'
+	| 'prev_iteration_post_move_total'
+	| 'this_iteration_pre_move_total'
+	| 'this_iteration_post_move_total';
 
 export type CustomVariableId = `custom_${number}`;
 
@@ -68,39 +67,23 @@ export type StandardVariable =
 			value: VariableBinaryValue;
 	  }
 	| {
-			id: 'is_castling';
-			value: VariableBinaryValue;
-	  }
-	| {
 			id: 'is_draw';
 			value: VariableBinaryValue;
 	  }
 	| {
-			id: 'captured_piece';
+			id: 'castled_king_side';
 			value: VariableBinaryValue;
 	  }
 	| {
-			id: `captured_${PieceNoKing}`;
+			id: 'castled_queen_side';
 			value: VariableBinaryValue;
 	  }
 	| {
-			id: 'lost_piece';
+			id: 'was_captured';
 			value: VariableBinaryValue;
 	  }
 	| {
-			id: `lost_${PieceNoKing}`;
-			value: VariableBinaryValue;
-	  }
-	| {
-			id: 'can_attack';
-			value: VariableRangeValue;
-	  }
-	| {
-			id: `can_attack_${PieceNoKing}`;
-			value: VariableRangeValue;
-	  }
-	| {
-			id: 'can_attack_king';
+			id: `${PieceNoKing}_was_captured`;
 			value: VariableBinaryValue;
 	  }
 	| {
@@ -108,40 +91,48 @@ export type StandardVariable =
 			value: VariableRangeValue;
 	  }
 	| {
-			id: `friendly_${Piece}_can_move_here`;
+			id: 'can_capture';
 			value: VariableRangeValue;
 	  }
 	| {
-			id: `opponent_${Piece}_can_move_here`;
+			id: `can_capture_${Piece}`;
 			value: VariableRangeValue;
 	  }
 	| {
-			id: 'adjacent_empty_squares';
+			id: 'can_move_here';
 			value: VariableRangeValue;
 	  }
 	| {
-			id: 'adjacent_friendly_pieces';
+			id: `${Piece}_can_move_here`;
 			value: VariableRangeValue;
 	  }
 	| {
-			id: `adjacent_friendly_${PieceNoKing}s`;
+			id: 'depth';
 			value: VariableRangeValue;
 	  }
 	| {
-			id: 'adjacent_friendly_king';
-			value: VariableBinaryValue;
-	  }
-	| {
-			id: 'adjacent_opponent_pieces';
+			id: 'first_iteration_pre_move_total';
 			value: VariableRangeValue;
 	  }
 	| {
-			id: `adjacent_opponent_${PieceNoKing}s`;
+			id: 'first_iteration_post_move_total';
 			value: VariableRangeValue;
 	  }
 	| {
-			id: 'adjacent_opponent_king';
-			value: VariableBinaryValue;
+			id: 'prev_iteration_pre_move_total';
+			value: VariableRangeValue;
+	  }
+	| {
+			id: 'prev_iteration_post_move_total';
+			value: VariableRangeValue;
+	  }
+	| {
+			id: 'this_iteration_pre_move_total';
+			value: VariableRangeValue;
+	  }
+	| {
+			id: 'this_iteration_post_move_total';
+			value: VariableRangeValue;
 	  };
 
 export type CustomVariable = {
