@@ -12,60 +12,65 @@ export const STATIC_MEMORY_SIZE = 36;
 export const DYNAMIC_MEMORY_SIZE = 24;
 export const MEMORY_SIZE = STATIC_MEMORY_SIZE + DYNAMIC_MEMORY_SIZE;
 
+export const MIN_MUTATION_RATE = 1;
+export const MAX_MUTATION_RATE = 4;
+
 export const CUSTOM_VARIABLE_MIN = NUMBER_RANGE_MIN;
 export const CUSTOM_VARIABLE_MAX = NUMBER_RANGE_MAX;
 
-export const BOARD_ALGORITHM_VARIABLE_IDS: Partial<EngineTypes.StandardVariableIds>[] = [
-	'is_self',
-	'is_opponent',
-	'is_empty',
-	'is_pawn',
-	'is_knight',
-	'is_bishop',
-	'is_rook',
-	'is_queen',
-	'is_king',
-	'is_in_check',
-	'is_in_checkmate',
-	'is_draw',
-	'castled_king_side',
-	'castled_queen_side',
-	'was_captured',
-	'pawn_was_captured',
-	'knight_was_captured',
-	'bishop_was_captured',
-	'rook_was_captured',
-	'queen_was_captured',
-	'possible_moves',
-	'can_capture',
-	'can_capture_pawn',
-	'can_capture_knight',
-	'can_capture_bishop',
-	'can_capture_rook',
-	'can_capture_queen',
-	'can_move_here',
-	'pawn_can_move_here',
-	'knight_can_move_here',
-	'bishop_can_move_here',
-	'rook_can_move_here',
-	'queen_can_move_here',
-	'king_can_move_here',
-];
+export const BOARD_ALGORITHM_VARIABLE_IDS: Partial<EngineTypes.ProvidedVariableIds>[] =
+	[
+		'is_self',
+		'is_opponent',
+		'is_empty',
+		'is_pawn',
+		'is_knight',
+		'is_bishop',
+		'is_rook',
+		'is_queen',
+		'is_king',
+		'is_in_check',
+		'is_in_checkmate',
+		'is_draw',
+		'castled_king_side',
+		'castled_queen_side',
+		'was_captured',
+		'pawn_was_captured',
+		'knight_was_captured',
+		'bishop_was_captured',
+		'rook_was_captured',
+		'queen_was_captured',
+		'possible_moves',
+		'can_capture',
+		'can_capture_pawn',
+		'can_capture_knight',
+		'can_capture_bishop',
+		'can_capture_rook',
+		'can_capture_queen',
+		'can_move_here',
+		'pawn_can_move_here',
+		'knight_can_move_here',
+		'bishop_can_move_here',
+		'rook_can_move_here',
+		'queen_can_move_here',
+		'king_can_move_here',
+	];
 
-export const MOVEMENT_ALGORITHM: Partial<EngineTypes.StandardVariableIds>[] = [
-	'is_in_check',
-	'is_in_checkmate',
-	'is_draw',
-	'depth',
-	'first_iteration_pre_move_total',
-	'first_iteration_post_move_total',
-	'prev_iteration_pre_move_total',
-	'prev_iteration_post_move_total',
-	'this_iteration_pre_move_total',
-	'this_iteration_post_move_total',
-];
+export const MOVEMENT_ALGORITHM_VARIABLE_IDS: Partial<EngineTypes.ProvidedVariableIds>[] =
+	[
+		'is_in_check',
+		'is_in_checkmate',
+		'is_draw',
+		'depth',
+		'first_iteration_pre_move_total',
+		'first_iteration_post_move_total',
+		'prev_iteration_pre_move_total',
+		'prev_iteration_post_move_total',
+		'this_iteration_pre_move_total',
+		'this_iteration_post_move_total',
+	];
 
-export const STANDARD_VARIABLE_IDS: EngineTypes.StandardVariableIds[] = [
+export const ALL_PROVIDED_VARIABLE_IDS: EngineTypes.ProvidedVariableIds[] = [
 	'is_self',
 	'is_opponent',
 	'is_empty',
@@ -115,7 +120,7 @@ export const CUSTOM_VARIABLE_IDS: EngineTypes.CustomVariableId[] = Array.from(
 );
 
 export const VARIABLE_IDS: EngineTypes.VariableId[] = [
-	...STANDARD_VARIABLE_IDS,
+	...ALL_PROVIDED_VARIABLE_IDS,
 	...CUSTOM_VARIABLE_IDS,
 ];
 

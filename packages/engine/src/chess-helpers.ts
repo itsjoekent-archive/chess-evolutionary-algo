@@ -64,7 +64,11 @@ export function isDraw(board: Chess) {
 	return board.isDraw() || board.isStalemate() || board.isThreefoldRepetition();
 }
 
-export function hasCastled(board: Chess, square: Square, side: 'kingside' | 'queenside') {
+export function hasCastled(
+	board: Chess,
+	square: Square,
+	side: 'kingside' | 'queenside',
+) {
 	if (!isKing(board, square)) {
 		return false;
 	}
@@ -126,7 +130,7 @@ export function filterMoves(
 			continue;
 		}
 
-		if (filters?.fromSquare && move.to !== filters?.fromSquare) {
+		if (filters?.fromSquare && move.from !== filters?.fromSquare) {
 			continue;
 		}
 

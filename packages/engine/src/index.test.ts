@@ -22,14 +22,14 @@ function testManyTimes(
 describe('generating tokens', () => {
 	test('generate random token that has no parent', () => {
 		testManyTimes(() => {
-			const token = Engine.generateRandomToken(null);
+			const token = Engine.generateRandomToken(null, 'board');
 			expect(EngineUtils.isFunctionId(token.id)).toBe(true);
 		});
 	});
 
-	test('generate random token that has no sub functions', () => {
+	test('confirm depth does not go beyond limit', () => {
 		testManyTimes(() => {
-			const token = Engine.generateRandomToken('add', 3);
+			const token = Engine.generateRandomToken('add', 'board', 3);
 			expect(EngineUtils.isFunctionId(token.id)).toBe(false);
 		});
 	});
@@ -38,7 +38,7 @@ describe('generating tokens', () => {
 		let passed = false;
 		testManyTimes(
 			(done) => {
-				const token = Engine.generateRandomToken('add', 1);
+				const token = Engine.generateRandomToken('add', 'board', 1);
 				if (EngineUtils.isFunctionId(token.id)) {
 					passed = true;
 					done();
@@ -53,7 +53,7 @@ describe('generating tokens', () => {
 		let passed = false;
 		testManyTimes(
 			(done) => {
-				const token = Engine.generateRandomToken('add', 1);
+				const token = Engine.generateRandomToken('add', 'board', 1);
 				if (EngineUtils.isVariableId(token.id)) {
 					passed = true;
 					done();
@@ -63,19 +63,35 @@ describe('generating tokens', () => {
 			() => expect(passed).toBe(true),
 		);
 	});
+
+	test('confirm board algorithm does not have movement algorithm tokens', () => {
+		testManyTimes(() => {
+			const algorithm = Engine.initializeNewAlgorithm('board');
+			Engine.walkAlgorithmTokens(algorithm, ({ token }) => expect(token.id).not.toBe('depth'));
+		}, 1000);
+	});
+
+	test('confirm movement algorithm does not have board algorithm tokens', () => {
+		testManyTimes(() => {
+			const algorithm = Engine.initializeNewAlgorithm('movement');
+			Engine.walkAlgorithmTokens(algorithm, ({ token }) =>
+				expect(token.id).not.toBe('pawn_was_captured'),
+			);
+		}, 1000);
+	});
 });
 
 describe('traversing the algorithm tokens', () => {
 	test('confirm token count', () => {
 		testManyTimes(() => {
-			const algorithm = Engine.initializeNewAlgorithm();
+			const algorithm = Engine.initializeNewAlgorithm('board');
 			algorithm.rootToken = {
 				id: 'add',
 				args: [
 					{ id: 'custom_1' },
 					{
 						id: 'sub',
-						args: [{ id: 'custom_2' }, { id: 'adjacent_friendly_bishops' }],
+						args: [{ id: 'custom_2' }, { id: 'is_in_check' }],
 					},
 				],
 			};
@@ -88,28 +104,28 @@ describe('traversing the algorithm tokens', () => {
 	});
 
 	test('setting new root value', () => {
-		const algorithm = Engine.initializeNewAlgorithm();
-		Engine.walkAlgorithmTokens(algorithm, (p, t, done) => {
-			done({ id: 'adjacent_empty_squares' });
+		const algorithm = Engine.initializeNewAlgorithm('board');
+		Engine.walkAlgorithmTokens(algorithm, ({ done }) => {
+			done({ id: 'is_draw' });
 		});
 
 		expect(JSON.stringify(algorithm.rootToken)).toEqual(
-			JSON.stringify({ id: 'adjacent_empty_squares' }),
+			JSON.stringify({ id: 'is_draw' }),
 		);
 	});
 
 	test('setting new child value', () => {
-		const algorithm = Engine.initializeNewAlgorithm();
-		Engine.walkAlgorithmTokens(algorithm, (p, t, done) => {
-			if (!!p) done({ id: 'adjacent_empty_squares' });
+		const algorithm = Engine.initializeNewAlgorithm('board');
+		Engine.walkAlgorithmTokens(algorithm, ({ parent, done }) => {
+			if (!!parent) done({ id: 'castled_king_side' });
 		});
 
 		expect(JSON.stringify(algorithm.rootToken)).toContain(
-			JSON.stringify({ id: 'adjacent_empty_squares' }),
+			JSON.stringify({ id: 'castled_king_side' }),
 		);
 
 		expect(JSON.stringify(algorithm.rootToken)).not.toEqual(
-			JSON.stringify({ id: 'adjacent_empty_squares' }),
+			JSON.stringify({ id: 'castled_king_side' }),
 		);
 	});
 });
@@ -117,7 +133,7 @@ describe('traversing the algorithm tokens', () => {
 describe('mutating algorithms', () => {
 	test('confirm successful mutation', () => {
 		testManyTimes(() => {
-			const original = Engine.initializeNewAlgorithm();
+			const original = Engine.initializeNewAlgorithm('board');
 			const originalCopy = JSON.stringify(original);
 
 			const mutated = Engine.mutateAlgorithm(original);
@@ -128,152 +144,147 @@ describe('mutating algorithms', () => {
 			expect(JSON.stringify(original.rootToken)).not.toEqual(
 				JSON.stringify(mutated.algorithm.rootToken),
 			);
-			expect(JSON.stringify(original.memory)).not.toEqual(
-				JSON.stringify(mutated.algorithm.memory),
-			);
 
 			const lastMutation = [...mutated.tokenMutations].pop();
 			expect(JSON.stringify(mutated.algorithm.rootToken)).to.contain(
-				JSON.stringify(lastMutation),
+				JSON.stringify(lastMutation?.to),
 			);
 		}, 5000); // need to run this enough times to catech edge cases with randomness
 	});
 });
 
 describe('evolving an algorithm', () => {
-	test('creates 9 offspring', () => {
+	test('creates 10 offspring', () => {
 		testManyTimes(() => {
-			const init = Engine.initializeNewAlgorithm();
-			const initStringified = JSON.stringify(init);
+			const init = Engine.initializeNewInstance();
+			const initBoardAlgorithmStringified = JSON.stringify(init.boardAlgorithm);
 
-			const offspring = Engine.evolveAlgorithm(init, 9);
+			const mutation = Engine.evolveInstance(init, 9);
 
-			expect(offspring.length).toBe(10);
-			expect(initStringified).toEqual(JSON.stringify(offspring[0].algorithm));
+			expect(mutation.children.length).toBe(10);
+			expect(initBoardAlgorithmStringified).toEqual(
+				JSON.stringify(mutation.children[0].instance.boardAlgorithm),
+			);
 
-			const testSet = offspring.map((m) => JSON.stringify(m.algorithm));
-			expect(testSet.length).toBe(10);
+			const testSet = new Set(
+				mutation.children.map((m) => EngineUtils.hashInstance(m.instance)),
+			);
+			expect(testSet.size).toBe(10);
+
+			const testIdSet = new Set([
+				...mutation.children.map((m) => m.instance.id),
+				init.id,
+			]);
+			expect(testIdSet.size).toBe(11);
 		});
 	});
 
 	test('clears the dynamic memory', () => {
-		const init = Engine.initializeNewAlgorithm();
+		const init = Engine.initializeNewInstance();
 		init.memory[EngineConstants.STATIC_MEMORY_SIZE + 1].value = 1;
 
-		const offspring = Engine.evolveAlgorithm(init, 9);
-		offspring.forEach((m) =>
-			expect(
-				m.algorithm.memory[EngineConstants.STATIC_MEMORY_SIZE + 1].value,
-			).toBe(0),
-		);
+		const mutation = Engine.evolveInstance(init, 1);
+		expect(
+			mutation.children[0].instance.memory[
+				EngineConstants.STATIC_MEMORY_SIZE + 1
+			].value,
+		).toBe(0);
+		expect(
+			mutation.children[1].instance.memory[
+				EngineConstants.STATIC_MEMORY_SIZE + 1
+			].value,
+		).toBe(0);
 	});
 });
 
 describe('populating variables', () => {
 	test('should populate memory variables', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
-		algorithm.memory[0].value = 1;
+		const instance = Engine.initializeNewInstance();
+		instance.memory[0].value = 1;
 
 		expect(
-			Engine.populateVariable('custom_0', algorithm, board, 'a1', 'w').value,
+			Engine.populateVariable('custom_0', instance, board, 'a1', 'w').value,
 		).toEqual(1);
 	});
 
 	test('should populate is_king', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_king', algorithm, board, 'e2', 'w').value,
+			Engine.populateVariable('is_king', instance, board, 'e2', 'w').value,
 		).toEqual(0);
 		expect(
-			Engine.populateVariable('is_king', algorithm, board, 'e1', 'w').value,
+			Engine.populateVariable('is_king', instance, board, 'e1', 'w').value,
 		).toEqual(1);
 	});
 
 	test('should populate is_empty', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_empty', algorithm, board, 'e1', 'w').value,
+			Engine.populateVariable('is_empty', instance, board, 'e1', 'w').value,
 		).toEqual(0);
 		expect(
-			Engine.populateVariable('is_empty', algorithm, board, 'e5', 'w').value,
+			Engine.populateVariable('is_empty', instance, board, 'e5', 'w').value,
 		).toEqual(1);
 	});
 
 	test('should populate is_self', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_self', algorithm, board, 'e1', 'w').value,
+			Engine.populateVariable('is_self', instance, board, 'e1', 'w').value,
 		).toEqual(1);
 		expect(
-			Engine.populateVariable('is_self', algorithm, board, 'e1', 'b').value,
+			Engine.populateVariable('is_self', instance, board, 'e1', 'b').value,
 		).toEqual(0);
 	});
 
 	test('should populate is_opponent', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_opponent', algorithm, board, 'e1', 'w').value,
+			Engine.populateVariable('is_opponent', instance, board, 'e1', 'w').value,
 		).toEqual(0);
 		expect(
-			Engine.populateVariable('is_opponent', algorithm, board, 'e1', 'b').value,
+			Engine.populateVariable('is_opponent', instance, board, 'e1', 'b').value,
 		).toEqual(1);
 	});
 
-	test('should populate captured_piece', () => {
+	test('should populate was_captured', () => {
 		const board = new Chess(
 			'rnb1k1nr/pppp1ppp/3bp3/4N2q/3PP3/2P5/PP2QPPP/RNB1KB1R b KQkq - 4 6',
 		);
 		board.move({ from: 'h5', to: 'e2' });
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('captured_piece', algorithm, board, 'e2', 'b')
-				.value,
+			Engine.populateVariable('was_captured', instance, board, 'e2', 'b').value,
 		).toEqual(1);
 		expect(
-			Engine.populateVariable('captured_piece', algorithm, board, 'e1', 'b')
-				.value,
+			Engine.populateVariable('was_captured', instance, board, 'e1', 'b').value,
 		).toEqual(0);
 	});
 
-	test('should populate captured_queen', () => {
+	test('should populate queen_was_captured', () => {
 		const board = new Chess(
 			'rnb1k1nr/pppp1ppp/3bp3/4N2q/3PP3/2P5/PP2QPPP/RNB1KB1R b KQkq - 4 6',
 		);
 		board.move({ from: 'h5', to: 'e2' });
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('captured_queen', algorithm, board, 'e2', 'b')
+			Engine.populateVariable('queen_was_captured', instance, board, 'e2', 'b')
 				.value,
 		).toEqual(1);
 		expect(
-			Engine.populateVariable('captured_queen', algorithm, board, 'e1', 'b')
+			Engine.populateVariable('queen_was_captured', instance, board, 'e1', 'b')
 				.value,
-		).toEqual(0);
-	});
-
-	test('should populate lost_queen', () => {
-		const board = new Chess(
-			'rnb1k1nr/pppp1ppp/3bp3/4N2q/3PP3/2P5/PP2QPPP/RNB1KB1R b KQkq - 4 6',
-		);
-		board.move({ from: 'h5', to: 'e2' });
-		const algorithm = Engine.initializeNewAlgorithm();
-
-		expect(
-			Engine.populateVariable('lost_queen', algorithm, board, 'e2', 'w').value,
-		).toEqual(1);
-		expect(
-			Engine.populateVariable('lost_queen', algorithm, board, 'e1', 'w').value,
 		).toEqual(0);
 	});
 
@@ -281,90 +292,111 @@ describe('populating variables', () => {
 		const board = new Chess(
 			'rnb1k1nr/pppp1ppp/4p3/8/1b1PP2q/8/PPP1QPPP/RNB1KBNR w KQkq - 3 4',
 		);
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_in_check', algorithm, board, 'e1', 'w').value,
+			Engine.populateVariable('is_in_check', instance, board, 'e2', 'w').value,
 		).toEqual(1);
-		expect(
-			Engine.populateVariable('is_in_check', algorithm, board, 'e2', 'w').value,
-		).toEqual(0);
-		expect(
-			Engine.populateVariable('is_in_check', algorithm, board, 'd1', 'w').value,
-		).toEqual(0);
 	});
 
 	test('should populate is_in_checkmate', () => {
 		const board = new Chess(
 			'rnbq1rk1/2ppnpQp/1p6/p2P4/2P1p3/5N2/PB2PPPP/RN2KB1R b KQ - 0 9',
 		);
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_in_checkmate', algorithm, board, 'g8', 'b').value,
+			Engine.populateVariable('is_in_checkmate', instance, board, 'g8', 'b')
+				.value,
 		).toEqual(1);
-		expect(
-			Engine.populateVariable('is_in_checkmate', algorithm, board, 'e1', 'w').value,
-		).toEqual(0);
 	});
 
 	test('should populate possible_moves', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('possible_moves', algorithm, board, 'e2', 'w').value,
+			Engine.populateVariable('possible_moves', instance, board, 'e2', 'w')
+				.value,
 		).toEqual(2);
 	});
 
-	test('should populate friendly_knight_can_move_here', () => {
+	test('should populate knight_can_move_here', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
 			Engine.populateVariable(
-				'friendly_knight_can_move_here',
-				algorithm,
+				'knight_can_move_here',
+				instance,
 				board,
 				'f3',
 				'w',
 			).value,
 		).toEqual(1);
-		expect(
-			Engine.populateVariable(
-				'friendly_knight_can_move_here',
-				algorithm,
-				board,
-				'f6',
-				'b',
-			).value,
-		).toEqual(0);
 	});
 
-	test('should populate opponent_knight_can_move_here', () => {
+	test('should populate knight_can_move_here', () => {
 		const board = new Chess();
-		const algorithm = Engine.initializeNewAlgorithm();
+		const instance = Engine.initializeNewInstance();
 
 		expect(
 			Engine.populateVariable(
-				'opponent_knight_can_move_here',
-				algorithm,
+				'knight_can_move_here',
+				instance,
+				board,
+				'c3',
+				'w',
+			).value,
+		).toEqual(1);
+		expect(
+			Engine.populateVariable(
+				'knight_can_move_here',
+				instance,
 				board,
 				'f3',
 				'w',
 			).value,
-		).toEqual(0);
+		).toEqual(1);
+	});
+
+	test('should populate castled_king_side', () => {
+		const board = new Chess(
+			'rnbqkbnr/pp3ppp/2ppp3/8/8/5NP1/PPPPPPBP/RNBQK2R w KQkq - 0 4',
+		);
+		const instance = Engine.initializeNewInstance();
+
+		board.move({ from: 'e1', to: 'g1' });
+
 		expect(
-			Engine.populateVariable(
-				'opponent_knight_can_move_here',
-				algorithm,
-				board,
-				'f6',
-				'b',
-			).value,
-		).toEqual(0);
+			Engine.populateVariable('castled_king_side', instance, board, 'g1', 'w')
+				.value,
+		).toEqual(1);
+	});
+
+	test('should draw after 3 fold repetition', () => {
+		const board = new Chess();
+		const instance = Engine.initializeNewInstance();
+
+		board.move({ from: 'b1', to: 'c3' });
+		board.move({ from: 'b8', to: 'c6' });
+
+		board.move({ from: 'c3', to: 'b1' });
+		board.move({ from: 'c6', to: 'b8' });
+
+		board.move({ from: 'b1', to: 'c3' });
+		board.move({ from: 'b8', to: 'c6' });
+
+		board.move({ from: 'c3', to: 'b1' });
+		board.move({ from: 'c6', to: 'b8' });
+
+		expect(
+			Engine.populateVariable('is_draw', instance, board, 'g1', 'w').value,
+		).toEqual(1);
 	});
 });
+
+// can_capture_
 
 // evaluateAlgorithm tests
 //  - hand craft an algorithm that leads to quick checkmate, confirm fitness applied correctly

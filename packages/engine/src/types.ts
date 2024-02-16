@@ -12,7 +12,7 @@ export type VariableRangeValue = number;
 
 // Too lazy to figure out the "smart" way of doing this in TS
 // given the use of template literals.
-export type StandardVariableIds =
+export type ProvidedVariableIds =
 	| 'is_self'
 	| 'is_opponent'
 	| 'is_empty'
@@ -39,9 +39,9 @@ export type StandardVariableIds =
 
 export type CustomVariableId = `custom_${number}`;
 
-export type VariableId = StandardVariableIds | CustomVariableId;
+export type VariableId = ProvidedVariableIds | CustomVariableId;
 
-export type StandardVariable =
+export type ProvidedVariable =
 	| {
 			id: 'is_self';
 			value: VariableBinaryValue;
@@ -141,7 +141,7 @@ export type CustomVariable = {
 	value: VariableRangeValue;
 };
 
-export type Variable = StandardVariable | CustomVariable;
+export type Variable = ProvidedVariable | CustomVariable;
 
 export type FunctionToken =
 	| {
@@ -258,20 +258,34 @@ export type VariableToken = { id: VariableId };
 export type Token = FunctionToken | VariableToken;
 
 export type ChessAlgorithm = {
+	type: 'board' | 'movement';
 	rootToken: Token;
+};
+
+export type Instance = {
+	id: string;
+	boardAlgorithm: ChessAlgorithm & { type: 'board' };
+	movementAlgorithm: ChessAlgorithm & { type: 'movement' };
 	memory: CustomVariable[];
 };
 
-export type MutationResult = {
-	algorithm: ChessAlgorithm;
-	memoryMutations: Record<CustomVariableId, number>;
-	tokenMutations: Token[];
+export type Mutation = {
+	parent: Instance;
+	children: {
+		instance: Instance;
+		memoryMutations: {
+			variableName: CustomVariable['id'];
+			from: CustomVariable['value'];
+			to: CustomVariable['value'];
+		}[];
+		tokenMutations: { path: string; from: Token; to: Token }[];
+	}[];
 };
 
 export type EvaluationResult = Record<
-	Color,
+	Instance['id'],
 	{
-		algorithm: ChessAlgorithm;
+		color: Color;
 		fitnessScore: number;
 	}
 >;

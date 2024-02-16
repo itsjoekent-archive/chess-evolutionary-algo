@@ -1,3 +1,4 @@
+import hash from 'hash.js';
 import * as EngineConstants from './constants';
 import * as EngineTypes from './types';
 
@@ -31,14 +32,18 @@ export function cloneAlgorithm(
 	return JSON.parse(JSON.stringify(algorithm)) as EngineTypes.ChessAlgorithm;
 }
 
+export function cloneInstance(instance: EngineTypes.Instance) {
+	return JSON.parse(JSON.stringify(instance)) as EngineTypes.Instance;
+}
+
 export function binary(value: any) {
 	return !!value ? 1 : 0;
 }
 
-export function clearDynamicMemory(algorithm: EngineTypes.ChessAlgorithm) {
+export function clearDynamicMemory(instance: EngineTypes.Instance) {
 	for (let i = 0; i < EngineConstants.DYNAMIC_MEMORY_SIZE; i++) {
 		const memoryIndex = i + EngineConstants.STATIC_MEMORY_SIZE;
-		algorithm.memory[memoryIndex].value = 0;
+		instance.memory[memoryIndex].value = 0;
 	}
 }
 
@@ -60,6 +65,19 @@ export function loopBoard(callback: (square: EngineTypes.Square) => void) {
 			callback(`${row}${col}`);
 		}
 	}
+}
+
+export function hashInstance(instance: EngineTypes.Instance): string {
+	const clone = cloneInstance(instance);
+	clearDynamicMemory(clone);
+
+	const hashContent = JSON.stringify({
+		ba: clone.boardAlgorithm,
+		ma: clone.movementAlgorithm,
+		mm: clone.memory,
+	});
+
+	return hash.sha256().update(hashContent).digest('hex');
 }
 
 // Pulled from here: https://stackoverflow.com/a/49434653
