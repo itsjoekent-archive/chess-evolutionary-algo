@@ -340,6 +340,30 @@ describe('populating variables', () => {
 			).value,
 		).toEqual(0);
 	});
+
+	test('should populate opponent_knight_can_move_here', () => {
+		const board = new Chess();
+		const algorithm = Engine.initializeNewAlgorithm();
+
+		expect(
+			Engine.populateVariable(
+				'opponent_knight_can_move_here',
+				algorithm,
+				board,
+				'f3',
+				'w',
+			).value,
+		).toEqual(0);
+		expect(
+			Engine.populateVariable(
+				'opponent_knight_can_move_here',
+				algorithm,
+				board,
+				'f6',
+				'b',
+			).value,
+		).toEqual(0);
+	});
 });
 
 // evaluateAlgorithm tests
