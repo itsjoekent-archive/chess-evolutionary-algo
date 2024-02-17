@@ -1,6 +1,6 @@
 import * as EngineTypes from './types';
 
-export const MAX_ALGORITHM_DURATION_MS = 3000;
+export const MAX_ALGORITHM_DURATION_MS = 1000;
 
 export const MAX_TOKEN_DEPTH_PER_ITERATION = 3;
 export const MAX_TOKEN_DYNAMIC_ARGS_LENGTH = 8;
@@ -145,6 +145,7 @@ export const FUNCTION_TOKEN_IDS: EngineTypes.FunctionTokenIds[] = [
 	'lt',
 	'lte',
 	'binary',
+	'invert',
 	'and',
 	'or',
 	'if',
@@ -154,5 +155,17 @@ export const FUNCTION_TOKEN_IDS: EngineTypes.FunctionTokenIds[] = [
 export const TOKEN_IDS = [...VARIABLE_IDS, ...FUNCTION_TOKEN_IDS];
 
 export const FITNESS_SCORES: Record<string, number> = {
+	CHECKMATED_THEM: 50,
+	WAS_CHECKMATED: -10,
 	TIMEOUT: -20,
+	FAIL_TO_PICK: -20,
+	TURN_PLAYED: 1,
+	CAPTURED_PIECE: 2,
+	LOST_PIECE: -1,
+	CHECKED_THEM: 3,
+	WAS_CHECKED: -1,
+	FORCED_DRAW: 5,
+	WAS_DRAWN: -1,
 } as const;
+
+export const MAX_MOVEMENT_SEARCH_DEPTH = 30;

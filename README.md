@@ -26,12 +26,20 @@ $ npm test -w @chess-evolutionary-algo/engine
 
 ## License & Contributing
 
-notes
---> run each game in a thread
---> run stockfish in wasm
---> use a cache for re-using variable calculations
+
 
 todo
-
 - promotion variable / handle promotions (always queen?)
 - variable for how many pieces remain (both sides?)
+- add event emitter to engine, refactor some stuff (eg: tokenmutations) to be events
+- create cache system for token evaluation? key: ${fen}-${color}-${variableId}
+- engine function for
+  - generating matchup arrays
+  - picking the top evaluation results from array of results
+  - creating next generation of instances
+- new sub-package for running the process
+  - run multiple threads
+  - use stack system for exchanging algorithms outside threads
+    - once all matchups are done, put best instance in the stack, pull from the top of the stack
+  - dump data from event emitter into document storage
+  - terraform files for infra

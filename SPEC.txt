@@ -145,16 +145,17 @@ order to execute. Any token can be an argument for another token.
 `Max()`    | 2-8   | Return the largest value
 `Min()`    | 2-8   | Return the smallest value
 `Abs()`    | 1     | Get the absolute value
-`Eq()`     | 2-8   | Return 1 if all values are equal
-`Neq()`    | 2-8   | Return 1 if all values are not equal
+`Eq()`     | 2     | Return 1 if all values are equal
+`Neq()`    | 2     | Return 1 if all values are not equal
 `Gt()`     | 2     | Return 1 if the left value is greater than the right
 `Gte()`    | 2     | Return 1 if the left value is greater than or equal
 `Lt()`     | 2     | Return 1 if the left value is less than the right
 `Lte()`    | 2     | Return 1 if the left value is less than or equal
 `Binary()` | 1     | Converts value to 0 or 1 (n >= 1)
-`And()`    | 2     | Returns 1 if all values are 1
-`Or()`     | 2     | Returns 1 if any value is 1
-`If()`     | 3     | If the first value is 1, return the 2nd value
+`Invert()  | 1     | Inverts the binary value
+`And()`    | 2     | Returns 1 if all values evaluate to binary 1
+`Or()`     | 2     | Returns 1 if any value evaluates to binary 1
+`If()`     | 3     | If the Binary(arg1) == 1, return the 2nd value
 `Write()`  | 2     | Write the left value into the custom variable
 
 In addition to the above function calls, each variable can be declared as
@@ -187,16 +188,16 @@ opponent to play.
     assigned to each move, pick the highest scored move.
 
 Fitness points are awarded as follows,
-* `-1` if there is a tie when evaluating moves.
-* `+1` for each turn played by the algorithm.
-* `+1` for capturing a piece.
+* `+1` for each turn played.
+* `+2` for capturing a piece.
 * `-1` for losing a piece.
 * `+3` for putting the king in check.
+* `-1` for being put in check.
 * `+5` for forcing draw (three-fold repition, etc).
-* `+1` for being forced into a draw.
+* `-1` for being forced into a draw.
 * `-10` for losing by checkmate.
-* `+20` for checkmating.
-* `-20` for running out of time when evaluating moves.
+* `+50` for checkmating.
+* `-20` for running out of time when evaluating moves or not making one.
 
 Once each algorithm has completed playing the game, the algorithms are
 sorted by fitness points awarded. The top algorithms will create offspring and

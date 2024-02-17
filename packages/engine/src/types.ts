@@ -1,3 +1,5 @@
+import type { Chess } from 'chess.js';
+
 export type Row = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
 export type Column = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
 export type Square = `${Row}${Column}`;
@@ -199,11 +201,11 @@ export type FunctionToken =
 	  }
 	| {
 			id: 'eq';
-			args: Token[];
+			args: [Token, Token];
 	  }
 	| {
 			id: 'neq';
-			args: Token[];
+			args: [Token, Token];
 	  }
 	| {
 			id: 'gt';
@@ -236,6 +238,10 @@ export type FunctionToken =
 	| {
 			id: 'or';
 			args: [Token, Token];
+	  }
+	| {
+			id: 'invert';
+			value: Token;
 	  }
 	| {
 			id: 'if';
@@ -289,3 +295,18 @@ export type EvaluationResult = Record<
 		fitnessScore: number;
 	}
 >;
+
+export type GameTurn = {
+	instance: Instance;
+	color: Color;
+	depth: number;
+	board: Chess;
+	outputs: {
+		firstIterationPreMoveTotal: number;
+		firstIterationPostMoveTotal: number;
+		prevIterationPreMoveTotal: number;
+		prevIterationPostMoveTotal: number;
+		thisIterationPreMoveTotal: number;
+		thisIterationPostMoveTotal: number;
+	};
+};

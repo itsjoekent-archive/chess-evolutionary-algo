@@ -14,6 +14,12 @@ export function isVariableId(
 	return (EngineConstants.VARIABLE_IDS as string[]).includes(id);
 }
 
+export function isMovementVariableId(id: EngineTypes.AllPossibleTokenIds) {
+	return (EngineConstants.MOVEMENT_ALGORITHM_VARIABLE_IDS as string[]).includes(
+		id,
+	);
+}
+
 export function assertUnreachable(a: never): never {
 	throw new Error('Unreachable');
 }
@@ -36,8 +42,8 @@ export function cloneInstance(instance: EngineTypes.Instance) {
 	return JSON.parse(JSON.stringify(instance)) as EngineTypes.Instance;
 }
 
-export function binary(value: any) {
-	return !!value ? 1 : 0;
+export function binary(value: any): EngineTypes.VariableBinaryValue {
+	return typeof value === 'number' ? (value >= 1 ? 1 : 0) : !!value ? 1 : 0;
 }
 
 export function clearDynamicMemory(instance: EngineTypes.Instance) {

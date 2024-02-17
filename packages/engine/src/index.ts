@@ -1,4 +1,4 @@
-import { Chess } from 'chess.js';
+import { Chess, Move } from 'chess.js';
 import random from 'lodash/random';
 import set from 'lodash/set';
 import { v4 as uuid } from 'uuid';
@@ -52,6 +52,8 @@ export function generateRandomToken(
 		case 'mul':
 		case 'div':
 		case 'mod':
+		case 'eq':
+		case 'neq':
 		case 'and':
 		case 'or': {
 			return {
@@ -61,6 +63,7 @@ export function generateRandomToken(
 		}
 
 		case 'binary':
+		case 'invert':
 		case 'sqrt':
 		case 'round':
 		case 'floor':
@@ -84,9 +87,7 @@ export function generateRandomToken(
 		}
 
 		case 'min':
-		case 'max':
-		case 'eq':
-		case 'neq': {
+		case 'max': {
 			const length = EngineUtils.randomBoxMuller(
 				2,
 				EngineConstants.MAX_TOKEN_DYNAMIC_ARGS_LENGTH,
@@ -117,7 +118,11 @@ export function generateRandomToken(
 		}
 
 		case 'write': {
-			const memoryIndex = random(0, EngineConstants.MEMORY_SIZE - 1, false);
+			const memoryIndex = random(
+				EngineConstants.STATIC_MEMORY_SIZE,
+				EngineConstants.MEMORY_SIZE - 1,
+				false,
+			);
 
 			return {
 				id: tokenId,
@@ -399,7 +404,10 @@ export function evolveInstance(
 	const denylist = new Set([EngineUtils.hashInstance(instance)]);
 
 	let attempts = 0;
-	while (attempts < loopTarget * 10 && mutationResult.children.length < loopTarget) {
+	while (
+		attempts < loopTarget * 10 &&
+		mutationResult.children.length < loopTarget
+	) {
 		const boardMutation = mutateAlgorithm(instance.boardAlgorithm);
 		const movementMutation = mutateAlgorithm(instance.movementAlgorithm);
 		const memoryMutation = mutateStaticMemory(instance);
@@ -425,7 +433,7 @@ export function evolveInstance(
 					...movementMutation.tokenMutations,
 				],
 				memoryMutations: memoryMutation.memoryMutations,
-			});			
+			});
 		}
 
 		attempts++;
@@ -436,15 +444,61 @@ export function evolveInstance(
 
 export function populateVariable(
 	variableId: EngineTypes.VariableId,
-	instance: EngineTypes.Instance,
-	board: Chess,
 	square: EngineTypes.Square,
-	selfColor: EngineTypes.Color,
+	turn: EngineTypes.GameTurn,
 ): EngineTypes.Variable {
+	const { instance, board, color: selfColor } = turn;
+
 	if (variableId.startsWith('custom_')) {
 		return instance.memory.find(
 			(m) => m.id === variableId,
 		) as EngineTypes.Variable;
+	}
+
+	if (EngineUtils.isMovementVariableId(variableId)) {
+		switch (variableId) {
+			case 'depth':
+				return {
+					id: variableId,
+					value: turn.depth,
+				};
+
+			case 'first_iteration_pre_move_total':
+				return {
+					id: variableId,
+					value: turn.outputs.firstIterationPreMoveTotal,
+				};
+
+			case 'first_iteration_post_move_total':
+				return {
+					id: variableId,
+					value: turn.outputs.firstIterationPostMoveTotal,
+				};
+
+			case 'prev_iteration_pre_move_total':
+				return {
+					id: variableId,
+					value: turn.outputs.prevIterationPreMoveTotal,
+				};
+
+			case 'prev_iteration_post_move_total':
+				return {
+					id: variableId,
+					value: turn.outputs.prevIterationPostMoveTotal,
+				};
+
+			case 'this_iteration_pre_move_total':
+				return {
+					id: variableId,
+					value: turn.outputs.thisIterationPreMoveTotal,
+				};
+
+			case 'this_iteration_post_move_total':
+				return {
+					id: variableId,
+					value: turn.outputs.thisIterationPostMoveTotal,
+				};
+		}
 	}
 
 	const opponentColor: EngineTypes.Color = selfColor === 'b' ? 'w' : 'b';
@@ -725,12 +779,129 @@ export function populateVariable(
 	}
 }
 
+export function execAlgorithm(
+	algorithm: EngineTypes.ChessAlgorithm,
+	square: EngineTypes.Square,
+	turn: EngineTypes.GameTurn,
+): number {
+	function walkToken(token: EngineTypes.Token): number {
+		if (EngineUtils.isVariableId(token.id)) {
+			const variable = populateVariable(token.id, square, turn);
+			return variable.value;
+		}
+
+		switch (token.id) {
+			case 'add':
+				return walkToken(token.args[0]) + walkToken(token.args[1]);
+
+			case 'sub':
+				return walkToken(token.args[0]) - walkToken(token.args[1]);
+
+			case 'mul':
+				return walkToken(token.args[0]) * walkToken(token.args[1]);
+
+			case 'div':
+				return walkToken(token.args[0]) / walkToken(token.args[1]);
+
+			case 'mod':
+				return walkToken(token.args[0]) % walkToken(token.args[1]);
+
+			case 'and':
+				return EngineUtils.binary(
+					EngineUtils.binary(walkToken(token.args[0])) === 1 &&
+						EngineUtils.binary(walkToken(token.args[1])) === 1,
+				);
+
+			case 'or':
+				return EngineUtils.binary(
+					EngineUtils.binary(walkToken(token.args[0])) ||
+						EngineUtils.binary(walkToken(token.args[1])),
+				);
+
+			case 'binary':
+				return EngineUtils.binary(walkToken(token.value));
+
+			case 'invert':
+				return EngineUtils.binary(walkToken(token.value)) === 0 ? 1 : 0;
+
+			case 'sqrt':
+				return Math.sqrt(walkToken(token.value));
+
+			case 'round':
+				return Math.round(walkToken(token.value));
+
+			case 'floor':
+				return Math.floor(walkToken(token.value));
+
+			case 'ceil':
+				return Math.ceil(walkToken(token.value));
+
+			case 'abs':
+				return Math.abs(walkToken(token.value));
+
+			case 'gt':
+				return EngineUtils.binary(
+					walkToken(token.left) > walkToken(token.right),
+				);
+
+			case 'gte':
+				return EngineUtils.binary(
+					walkToken(token.left) >= walkToken(token.right),
+				);
+
+			case 'lt':
+				return EngineUtils.binary(
+					walkToken(token.left) < walkToken(token.right),
+				);
+
+			case 'lte':
+				return EngineUtils.binary(
+					walkToken(token.left) <= walkToken(token.right),
+				);
+
+			case 'min':
+				return Math.min(...token.args.map(walkToken));
+
+			case 'max':
+				return Math.max(...token.args.map(walkToken));
+
+			case 'eq':
+				return EngineUtils.binary(
+					walkToken(token.args[0]) === walkToken(token.args[1]),
+				);
+
+			case 'neq':
+				return EngineUtils.binary(
+					walkToken(token.args[0]) !== walkToken(token.args[1]),
+				);
+
+			case 'pow':
+				return Math.pow(walkToken(token.base), walkToken(token.power));
+
+			case 'if': {
+				const condition = EngineUtils.binary(walkToken(token.condition));
+				return condition ? walkToken(token.then) : walkToken(token.else);
+			}
+
+			case 'write': {
+				const value = walkToken(token.value);
+				turn.instance.memory[token.memoryIndex].value = value;
+				return value;
+			}
+		}
+	}
+
+	const rootToken = algorithm.rootToken;
+	return walkToken(rootToken);
+}
+
+// TODO: event emitter for UI observability
 export async function compareInstances(
 	instances: [EngineTypes.Instance, EngineTypes.Instance],
 ): Promise<EngineTypes.EvaluationResult> {
 	const chess = new Chess();
 
-	const instancesOrder= EngineUtils.shuffle([...instances]);
+	const instancesOrder = EngineUtils.shuffle([...instances]);
 
 	const evaluationResult: EngineTypes.EvaluationResult = {
 		[instancesOrder[0].id]: {
@@ -743,6 +914,37 @@ export async function compareInstances(
 		},
 	};
 
+	const lastTurns: Record<EngineTypes.Color, EngineTypes.GameTurn> = {
+		w: {
+			instance: instancesOrder[0],
+			board: chess,
+			color: 'w',
+			depth: 0,
+			outputs: {
+				firstIterationPreMoveTotal: 0,
+				firstIterationPostMoveTotal: 0,
+				prevIterationPreMoveTotal: 0,
+				prevIterationPostMoveTotal: 0,
+				thisIterationPreMoveTotal: 0,
+				thisIterationPostMoveTotal: 0,
+			},
+		},
+		b: {
+			instance: instancesOrder[1],
+			board: chess,
+			color: 'b',
+			depth: 0,
+			outputs: {
+				firstIterationPreMoveTotal: 0,
+				firstIterationPostMoveTotal: 0,
+				prevIterationPreMoveTotal: 0,
+				prevIterationPostMoveTotal: 0,
+				thisIterationPreMoveTotal: 0,
+				thisIterationPostMoveTotal: 0,
+			},
+		},
+	};
+
 	async function playGame(
 		resolve: (result: EngineTypes.EvaluationResult) => void,
 	) {
@@ -751,39 +953,237 @@ export async function compareInstances(
 		function endGame() {
 			if (hasCancelled) return;
 
-			resolve(evaluationResult);
 			hasCancelled = true;
+			resolve(evaluationResult);
+		}
+
+		function updateFitnessScore(id: EngineTypes.Instance['id'], score: number) {
+			if (!hasCancelled) {
+				evaluationResult[id].fitnessScore += score;
+			}
+		}
+
+		async function playNextTurn(
+			lastTurn: EngineTypes.GameTurn,
+			abortController: AbortController,
+		): Promise<{
+			score: number;
+			nextTurn: EngineTypes.GameTurn;
+			move: Move;
+		} | null> {
+			// Enforce the MAX_ALGORITHM_DURATION_MS
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			if (abortController.signal.aborted) return null;
+
+			const thisTurnPreMove: EngineTypes.GameTurn = {
+				...lastTurn,
+				depth: lastTurn.depth + 1,
+				outputs: {
+					...lastTurn.outputs,
+					prevIterationPreMoveTotal: lastTurn.outputs.thisIterationPreMoveTotal,
+					prevIterationPostMoveTotal:
+						lastTurn.outputs.thisIterationPostMoveTotal,
+					thisIterationPreMoveTotal: 0,
+					thisIterationPostMoveTotal: 0,
+				},
+			};
+
+			EngineUtils.loopBoard((square) => {
+				thisTurnPreMove.outputs.thisIterationPreMoveTotal += execAlgorithm(
+					thisTurnPreMove.instance.boardAlgorithm,
+					square,
+					thisTurnPreMove,
+				);
+			});
+
+			if (lastTurn.depth === 0) {
+				thisTurnPreMove.outputs.firstIterationPreMoveTotal =
+					thisTurnPreMove.outputs.thisIterationPreMoveTotal;
+			}
+
+			const scoredMoves: NonNullable<
+				Awaited<ReturnType<typeof playNextTurn>>
+			>[] = [];
+
+			const moves = chess.moves({ verbose: true });
+			for (const move of moves) {
+				if (abortController.signal.aborted) return null;
+
+				const postMoveBoard = new Chess(chess.fen());
+				postMoveBoard.move(move);
+
+				const thisTurnPostMove: EngineTypes.GameTurn = {
+					...thisTurnPreMove,
+					instance: EngineUtils.cloneInstance(thisTurnPreMove.instance),
+					board: postMoveBoard,
+					color: lastTurn.color === 'w' ? 'b' : 'w',
+				};
+
+				EngineUtils.loopBoard((square) => {
+					thisTurnPostMove.outputs.thisIterationPostMoveTotal += execAlgorithm(
+						thisTurnPostMove.instance.boardAlgorithm,
+						square,
+						thisTurnPostMove,
+					);
+				});
+
+				if (lastTurn.depth === 0) {
+					thisTurnPostMove.outputs.firstIterationPostMoveTotal =
+						thisTurnPostMove.outputs.thisIterationPostMoveTotal;
+				}
+
+				const movementOutput = execAlgorithm(
+					thisTurnPostMove.instance.movementAlgorithm,
+					'a1',
+					thisTurnPostMove,
+				);
+				if (movementOutput === 0) {
+					if (
+						thisTurnPostMove.depth < EngineConstants.MAX_MOVEMENT_SEARCH_DEPTH
+					) {
+						const futureTurn = await playNextTurn(
+							thisTurnPostMove,
+							abortController,
+						);
+						if (futureTurn) {
+							const { score: futureScore } = futureTurn;
+
+							scoredMoves.push({
+								nextTurn: thisTurnPostMove,
+								move,
+								score: futureScore,
+							});
+						} else {
+							scoredMoves.push({
+								nextTurn: thisTurnPostMove,
+								move,
+								score: movementOutput,
+							});
+						}
+					}
+				} else {
+					scoredMoves.push({
+						nextTurn: thisTurnPostMove,
+						move,
+						score: movementOutput,
+					});
+				}
+			}
+
+			if (!scoredMoves.length) return null;
+
+			return scoredMoves.reduce(
+				(best, move) => (move.score > best.score ? move : best),
+				scoredMoves[0],
+			);
 		}
 
 		while (!chess.isGameOver() || !hasCancelled) {
 			const currentTurnColor: EngineTypes.Color = chess.turn();
 
+			const currentInstanceId =
+				currentTurnColor === 'w' ? instancesOrder[0].id : instancesOrder[1].id;
+			const opponentInstanceId =
+				currentTurnColor === 'w' ? instancesOrder[1].id : instancesOrder[0].id;
+
+			updateFitnessScore(
+				currentInstanceId,
+				EngineConstants.FITNESS_SCORES['TURN_PLAYED'],
+			);
+
+			const abortController = new AbortController();
+
 			const timeoutId = setTimeout(() => {
-				if (!hasCancelled) {
-					evaluationResult[currentTurnColor].fitnessScore -=
-						EngineConstants.FITNESS_SCORES['TIMEOUT'];
-					endGame();
-				}
+				abortController.abort();
+				updateFitnessScore(
+					currentInstanceId,
+					EngineConstants.FITNESS_SCORES['TIMEOUT'],
+				);
+				endGame();
 			}, EngineConstants.MAX_ALGORITHM_DURATION_MS);
 
-			// const moves = chess.moves();
-			// const move = moves[Math.floor(Math.random() * moves.length)];
-			// chess.move(move);
-
-			// wrap algorithm run with try/catch so we can throw if the timeout expires
-			// to stop the promise from running
-
-			// check hasCancelled again before writing to evaluationResult
+			const lastTurn = lastTurns[currentTurnColor];
+			const nextTurnResult = await playNextTurn(lastTurn, abortController);
 
 			clearTimeout(timeoutId);
+
+			if (!nextTurnResult) {
+				updateFitnessScore(
+					currentInstanceId,
+					EngineConstants.FITNESS_SCORES['FAIL_TO_PICK'],
+				);
+				endGame();
+				break;
+			}
+
+			lastTurns[currentTurnColor] = nextTurnResult.nextTurn;
+			chess.move(nextTurnResult.move);
+
+			if (ChessHelpers.checkCapture(chess, nextTurnResult.move.to)) {
+				updateFitnessScore(
+					currentInstanceId,
+					EngineConstants.FITNESS_SCORES['CAPTURED_PIECE'],
+				);
+				updateFitnessScore(
+					opponentInstanceId,
+					EngineConstants.FITNESS_SCORES['LOST_PIECE'],
+				);
+			}
+
+			if (chess.isCheckmate()) {
+				updateFitnessScore(
+					currentInstanceId,
+					EngineConstants.FITNESS_SCORES['CHECKMATED_THEM'],
+				);
+
+				updateFitnessScore(
+					opponentInstanceId,
+					EngineConstants.FITNESS_SCORES['WAS_CHECKMATED'],
+				);
+				endGame();
+				break;
+			}
+
+			if (ChessHelpers.isDraw(chess)) {
+				updateFitnessScore(
+					currentInstanceId,
+					EngineConstants.FITNESS_SCORES['FORCED_DRAW'],
+				);
+
+				updateFitnessScore(
+					opponentInstanceId,
+					EngineConstants.FITNESS_SCORES['WAS_DRAWN'],
+				);
+				endGame();
+				break;
+			}
+
+			if (chess.isCheck()) {
+				updateFitnessScore(
+					currentInstanceId,
+					EngineConstants.FITNESS_SCORES['CHECKED_THEM'],
+				);
+				updateFitnessScore(
+					opponentInstanceId,
+					EngineConstants.FITNESS_SCORES['WAS_CHECKED'],
+				);
+			}
 		}
 
 		endGame();
 	}
 
-	const { resolve, promise } =
-		Promise.withResolvers<EngineTypes.EvaluationResult>();
-	await playGame(resolve);
+	let resolver: (result: EngineTypes.EvaluationResult) => void = () => {};
+	const promise = new Promise<EngineTypes.EvaluationResult>((resolve) => {
+		resolver = resolve;
+	});
+
+	await playGame(resolver);
 
 	return promise;
 }
+
+// (async () =>
+// 	compareInstances([initializeNewInstance(), initializeNewInstance()]).then(
+// 		console.log,
+// 	))();

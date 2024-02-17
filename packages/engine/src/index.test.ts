@@ -67,7 +67,9 @@ describe('generating tokens', () => {
 	test('confirm board algorithm does not have movement algorithm tokens', () => {
 		testManyTimes(() => {
 			const algorithm = Engine.initializeNewAlgorithm('board');
-			Engine.walkAlgorithmTokens(algorithm, ({ token }) => expect(token.id).not.toBe('depth'));
+			Engine.walkAlgorithmTokens(algorithm, ({ token }) =>
+				expect(token.id).not.toBe('depth'),
+			);
 		}, 1000);
 	});
 
@@ -198,13 +200,28 @@ describe('evolving an algorithm', () => {
 });
 
 describe('populating variables', () => {
+	const outputs = {
+		firstIterationPreMoveTotal: 0,
+		firstIterationPostMoveTotal: 0,
+		prevIterationPreMoveTotal: 0,
+		prevIterationPostMoveTotal: 0,
+		thisIterationPreMoveTotal: 0,
+		thisIterationPostMoveTotal: 0,
+	};
+
 	test('should populate memory variables', () => {
 		const board = new Chess();
 		const instance = Engine.initializeNewInstance();
 		instance.memory[0].value = 1;
 
 		expect(
-			Engine.populateVariable('custom_0', instance, board, 'a1', 'w').value,
+			Engine.populateVariable('custom_0', 'a1', {
+				instance,
+				board,
+				color: 'w',
+				depth: 0,
+				outputs,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -213,10 +230,22 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_king', instance, board, 'e2', 'w').value,
+			Engine.populateVariable('is_king', 'e2', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(0);
 		expect(
-			Engine.populateVariable('is_king', instance, board, 'e1', 'w').value,
+			Engine.populateVariable('is_king', 'e1', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -225,10 +254,22 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_empty', instance, board, 'e1', 'w').value,
+			Engine.populateVariable('is_empty', 'e1', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(0);
 		expect(
-			Engine.populateVariable('is_empty', instance, board, 'e5', 'w').value,
+			Engine.populateVariable('is_empty', 'e5', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -237,10 +278,22 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_self', instance, board, 'e1', 'w').value,
+			Engine.populateVariable('is_self', 'e1', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 		expect(
-			Engine.populateVariable('is_self', instance, board, 'e1', 'b').value,
+			Engine.populateVariable('is_self', 'e1', {
+				instance,
+				board,
+				color: 'b',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(0);
 	});
 
@@ -249,10 +302,22 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_opponent', instance, board, 'e1', 'w').value,
+			Engine.populateVariable('is_opponent', 'e1', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(0);
 		expect(
-			Engine.populateVariable('is_opponent', instance, board, 'e1', 'b').value,
+			Engine.populateVariable('is_opponent', 'e1', {
+				instance,
+				board,
+				color: 'b',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -264,10 +329,22 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('was_captured', instance, board, 'e2', 'b').value,
+			Engine.populateVariable('was_captured', 'e2', {
+				instance,
+				board,
+				color: 'b',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 		expect(
-			Engine.populateVariable('was_captured', instance, board, 'e1', 'b').value,
+			Engine.populateVariable('was_captured', 'e1', {
+				instance,
+				board,
+				color: 'b',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(0);
 	});
 
@@ -279,12 +356,22 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('queen_was_captured', instance, board, 'e2', 'b')
-				.value,
+			Engine.populateVariable('queen_was_captured', 'e2', {
+				instance,
+				board,
+				color: 'b',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 		expect(
-			Engine.populateVariable('queen_was_captured', instance, board, 'e1', 'b')
-				.value,
+			Engine.populateVariable('queen_was_captured', 'e1', {
+				instance,
+				board,
+				color: 'b',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(0);
 	});
 
@@ -295,7 +382,13 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_in_check', instance, board, 'e2', 'w').value,
+			Engine.populateVariable('is_in_check', 'e2', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -306,8 +399,13 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('is_in_checkmate', instance, board, 'g8', 'b')
-				.value,
+			Engine.populateVariable('is_in_checkmate', 'g8', {
+				instance,
+				board,
+				color: 'b',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -316,8 +414,13 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable('possible_moves', instance, board, 'e2', 'w')
-				.value,
+			Engine.populateVariable('possible_moves', 'e2', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(2);
 	});
 
@@ -326,13 +429,13 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable(
-				'knight_can_move_here',
+			Engine.populateVariable('knight_can_move_here', 'f3', {
 				instance,
 				board,
-				'f3',
-				'w',
-			).value,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -341,22 +444,22 @@ describe('populating variables', () => {
 		const instance = Engine.initializeNewInstance();
 
 		expect(
-			Engine.populateVariable(
-				'knight_can_move_here',
+			Engine.populateVariable('knight_can_move_here', 'c3', {
 				instance,
 				board,
-				'c3',
-				'w',
-			).value,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 		expect(
-			Engine.populateVariable(
-				'knight_can_move_here',
+			Engine.populateVariable('knight_can_move_here', 'f3', {
 				instance,
 				board,
-				'f3',
-				'w',
-			).value,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -369,8 +472,13 @@ describe('populating variables', () => {
 		board.move({ from: 'e1', to: 'g1' });
 
 		expect(
-			Engine.populateVariable('castled_king_side', instance, board, 'g1', 'w')
-				.value,
+			Engine.populateVariable('castled_king_side', 'g1', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
 	});
 
@@ -391,15 +499,158 @@ describe('populating variables', () => {
 		board.move({ from: 'c6', to: 'b8' });
 
 		expect(
-			Engine.populateVariable('is_draw', instance, board, 'g1', 'w').value,
+			Engine.populateVariable('is_draw', 'g1', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
 		).toEqual(1);
+	});
+
+	test('should allow pawn capture', () => {
+		const board = new Chess(
+			'rnbqkbnr/pp1p1ppp/8/2p1p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1',
+		);
+		const instance = Engine.initializeNewInstance();
+
+		expect(
+			Engine.populateVariable('can_capture', 'd4', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
+		).toEqual(2);
+		expect(
+			Engine.populateVariable('can_capture_pawn', 'd4', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
+		).toEqual(2);
 	});
 });
 
-// can_capture_
+describe('executing an algorithm', () => {
+	const outputs = {
+		firstIterationPreMoveTotal: 0,
+		firstIterationPostMoveTotal: 0,
+		prevIterationPreMoveTotal: 0,
+		prevIterationPostMoveTotal: 0,
+		thisIterationPreMoveTotal: 0,
+		thisIterationPostMoveTotal: 0,
+	};
 
-// evaluateAlgorithm tests
-//  - hand craft an algorithm that leads to quick checkmate, confirm fitness applied correctly
-//  - timeout works
+	test('should return addition', () => {
+		const board = new Chess();
+		const instance = Engine.initializeNewInstance();
+		instance.boardAlgorithm.rootToken = {
+			id: 'add',
+			args: [
+				{ id: 'custom_1' },
+				{
+					id: 'sub',
+					args: [{ id: 'custom_2' }, { id: 'is_in_check' }],
+				},
+			],
+		};
+		instance.memory[1].value = 1;
+		instance.memory[2].value = 2;
 
-// create seperate functions/tests for deriving the variables, picking the move, awarding fitness points
+		const result = Engine.execAlgorithm(instance.boardAlgorithm, 'a1', {
+			instance,
+			board,
+			color: 'w',
+			outputs,
+			depth: 0,
+		});
+
+		expect(result).toEqual(3);
+	});
+
+	test('should return comparison', () => {
+		const board = new Chess();
+		const instance = Engine.initializeNewInstance();
+		instance.boardAlgorithm.rootToken = {
+			id: 'eq',
+			args: [{ id: 'custom_1' }, { id: 'custom_2' }],
+		};
+		instance.memory[1].value = 1;
+		instance.memory[2].value = 2;
+
+		const result = Engine.execAlgorithm(instance.boardAlgorithm, 'a1', {
+			instance,
+			board,
+			color: 'w',
+			outputs,
+			depth: 0,
+		});
+
+		expect(result).toEqual(0);
+	});
+
+	test('should return if conditional', () => {
+		const board = new Chess();
+		const instance = Engine.initializeNewInstance();
+		instance.boardAlgorithm.rootToken = {
+			id: 'if',
+			condition: { id: 'is_in_check' },
+			then: { id: 'custom_1' },
+			else: { id: 'custom_2' },
+		};
+		instance.memory[1].value = 1;
+		instance.memory[2].value = 2;
+
+		const result = Engine.execAlgorithm(instance.boardAlgorithm, 'a1', {
+			instance,
+			board,
+			color: 'w',
+			outputs,
+			depth: 0,
+		});
+
+		expect(result).toEqual(2);
+	});
+
+	test('should write to memory', () => {
+		const board = new Chess();
+		const instance = Engine.initializeNewInstance();
+		instance.boardAlgorithm.rootToken = {
+			id: 'write',
+			value: {
+				id: 'invert',
+				value: { id: 'is_in_check' },
+			},
+			memoryIndex: 2,
+		};
+		instance.memory[1].value = -1;
+
+		Engine.execAlgorithm(instance.boardAlgorithm, 'a1', {
+			instance,
+			board,
+			color: 'w',
+			outputs,
+			depth: 0,
+		});
+
+		expect(instance.memory[2].value).toEqual(1);
+	});
+});
+
+describe('comparing algorithms', () => {
+	test('should not crash', async () => {
+		testManyTimes(() => {
+			const instance = Engine.initializeNewInstance();
+			const instance2 = Engine.initializeNewInstance();
+
+			expect(
+				Engine.compareInstances([instance, instance2]),
+			).resolves.toBeDefined();			
+		}, 10);
+	});
+});
