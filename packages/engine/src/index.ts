@@ -1007,6 +1007,7 @@ export async function compareInstances(
 
 			const moves = chess.moves({ verbose: true });
 			for (const move of moves) {
+				// For some reason it's not enough to have it at the top of the function.
 				if (abortController.signal.aborted) return null;
 
 				const postMoveBoard = new Chess(chess.fen());

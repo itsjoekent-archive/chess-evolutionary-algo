@@ -650,7 +650,7 @@ describe('comparing algorithms', () => {
 
 			expect(
 				Engine.compareInstances([instance, instance2]),
-			).resolves.toBeDefined();			
+			).resolves.toBeDefined();
 		}, 10);
 	});
 });

@@ -26,9 +26,8 @@ $ npm test -w @chess-evolutionary-algo/engine
 
 ## License & Contributing
 
-
-
 todo
+
 - promotion variable / handle promotions (always queen?)
 - variable for how many pieces remain (both sides?)
 - add event emitter to engine, refactor some stuff (eg: tokenmutations) to be events
