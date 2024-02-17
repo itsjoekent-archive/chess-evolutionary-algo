@@ -28,6 +28,7 @@ $ npm test -w @chess-evolutionary-algo/engine
 
 todo
 
+- compile engine to dist folder, update package/main
 - promotion variable / handle promotions (always queen?)
 - variable for how many pieces remain (both sides?)
 - add event emitter to engine, refactor some stuff (eg: tokenmutations) to be events
