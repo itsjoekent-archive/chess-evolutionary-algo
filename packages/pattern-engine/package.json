@@ -1,5 +1,5 @@
 {
-	"name": "@chess-evolutionary-algo/token-engine",
+	"name": "@chess-evolutionary-algo/pattern-engine",
 	"main": "src/index.js",
 	"type": "module",
 	"scripts": {
@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"chess.js": "^1.0.0-beta.7",
+		"eventemitter3": "^5.0.1",
 		"hash.js": "^1.1.7",
 		"lodash": "^4.17.21",
 		"uuid": "^9.0.1"

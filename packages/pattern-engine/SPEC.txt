@@ -1,0 +1,102 @@
+Chess Evolutionary Algorithm Spec
+by @itsjoekent, 2024
+Version 2.0
+
+=== SUMMARY ===============================================================
+
+This is a system for developing an evolutionary algorithm that can discover
+the optimal move to make in a chess game.
+
+Each player has a sorted list of patterns that describe the state of a game
+board, and a move that can be made. This tuple is called an instruction.
+
+On each turn, the system will get a players instruction set to see if any 
+of the patterns match.
+
+If an instruction matches, the system will check if the move is valid. If
+the move is not valid, it continues searching. This process continues a
+match with a valid move is found. If no match is found, the system will
+pick a random move available to the player, and generate a new pattern
+which includes the to/from squares of the move. This new instruction will
+be added to the players entire instruction set.
+
+
+=== PATTERNS ==============================================================
+
+Patterns are a series of strings ('segments') that describe a square
+location and what state the square should be in.
+
+Locations can be represented in two formats, absolute and relative.
+
+Absolute locations have a 1:1 correlation with a square on the board,
+(eg: '!a1'). Whereas relative locations are relative to another square on
+the board. These relative locations can either be the first the 'from'
+square, or the 'to' square.
+
+```
+  start  a->h       1->8
+%[f/t](+/-)${0-8}(+/-)${0-8}
+```
+
+The state can be described as either empty ('E'), friendly ('F'), a piece
+that can be captured ('C'), or a piece with a specific color (eg: 'bq').
+
+A complete representation of location and state would look like `!a1=bp`.
+
+A pattern is a series of these individual segments. The total amount of 
+segments is random, but with a min length of 2 and a max length of 32, 
+with a bias towards generating in the middle of these values. The segments 
+that represent the 'to' and 'from' must be absolute, and are stored
+independently (see instruction data structure below).
+
+
+=== INSTRUCTIONS ==========================================================
+
+An instruction is a pattern <--> move tuple. The 'from' and 'to' squares
+must be described within the pattern.
+
+```
+{
+  move: {
+    from: 'b2',
+    to: 'b4',
+  },
+  pattern: `!a2=bp,!b2=bp,!b4=e`,
+}
+```
+
+=== EVOLUTION PROCESS ====================================================
+
+The process of iterating on the evolutionary algorithm requires going 
+through the following steps to generate a fitness score,
+
+1. Initiate two new instruction sets, assign each a color to play (black 
+or white).
+2. Start a new game of chess.
+3. On each turn,
+  A. Loop over each instruction, check if the pattern matches the board.
+    I. If a pattern matches, and the move is valid, make the move and keep
+       keep track of the pattern ID.
+    II. If a pattern matches, and the move is invalid, keep searching.
+    III. If no pattern matches, generate a new instruction and use that.
+4. When the game ends, assess each player a fitness score (see below table)
+   and apply it to each instruction that was used. Resort the instruction
+   set based on the updated scores.
+
+When this process has been repeated many times, you can "mate" two
+different instruction sets by taking the top n% of instructions. For
+mutating instruction sets, create x new instructions, and add them randomly
+to the instruction set. 
+
+This process repeats until an optimal solution is discovered.
+
+Fitness points are awarded as follows,
+* `+1` for each turn played.
+* `+2` for capturing a piece.
+* `-1` for losing a piece.
+* `+3` for putting the king in check.
+* `-1` for being put in check.
+* `+5` for forcing draw (three-fold repition, etc).
+* `-1` for being forced into a draw.
+* `-10` for losing by checkmate.
+* `+50` for checkmating.
