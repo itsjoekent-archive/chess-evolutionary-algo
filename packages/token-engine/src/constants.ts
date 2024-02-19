@@ -34,6 +34,7 @@ export const BOARD_ALGORITHM_VARIABLE_IDS: Partial<EngineTypes.ProvidedVariableI
 		'is_draw',
 		'castled_king_side',
 		'castled_queen_side',
+		'promoted',
 		'was_captured',
 		'pawn_was_captured',
 		'knight_was_captured',
@@ -85,6 +86,7 @@ export const ALL_PROVIDED_VARIABLE_IDS: EngineTypes.ProvidedVariableIds[] = [
 	'is_draw',
 	'castled_king_side',
 	'castled_queen_side',
+	'promoted',
 	'was_captured',
 	'pawn_was_captured',
 	'knight_was_captured',
@@ -168,4 +170,4 @@ export const FITNESS_SCORES: Record<string, number> = {
 	WAS_DRAWN: -1,
 } as const;
 
-export const MAX_MOVEMENT_SEARCH_DEPTH = 30;
+export const MAX_MOVEMENT_SEARCH_DEPTH = 15;

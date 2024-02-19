@@ -55,6 +55,8 @@ is_draw [B] [M] (0/1) :: 1 if he game is going to end in a draw
 castled_${side} [B] (0/1) :: 1 if the king on this square castled in the
 previous move.
 
+promoted [B] (0/1) :: 1 if the piece on this square was promoted.
+
 was_captured [B] (0/1) :: 1 if the last move captured a piece on this
 square.
 

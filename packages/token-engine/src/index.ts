@@ -596,6 +596,12 @@ export function populateVariable(
 				),
 			};
 
+		case 'promoted':
+			return {
+				id: variableId,
+				value: EngineUtils.binary(ChessHelpers.hasPromoted(board, square)),
+			};
+
 		case 'was_captured':
 			return {
 				id: variableId,
@@ -1033,42 +1039,49 @@ export async function compareInstances(
 						thisTurnPostMove.outputs.thisIterationPostMoveTotal;
 				}
 
-				const movementOutput = execAlgorithm(
-					thisTurnPostMove.instance.movementAlgorithm,
-					'a1',
-					thisTurnPostMove,
-				);
-				if (movementOutput === 0) {
-					if (
-						thisTurnPostMove.depth < EngineConstants.MAX_MOVEMENT_SEARCH_DEPTH
-					) {
-						const futureTurn = await playNextTurn(
-							thisTurnPostMove,
-							abortController,
-						);
-						if (futureTurn) {
-							const { score: futureScore } = futureTurn;
+				scoredMoves.push({
+					nextTurn: thisTurnPostMove,
+					move,
+					score:
+						thisTurnPreMove.outputs.thisIterationPreMoveTotal -
+						thisTurnPostMove.outputs.thisIterationPostMoveTotal,
+				});
+				// const movementOutput = execAlgorithm(
+				// 	thisTurnPostMove.instance.movementAlgorithm,
+				// 	'a1',
+				// 	thisTurnPostMove,
+				// );
+				// if (movementOutput === 0) {
+				// 	if (
+				// 		thisTurnPostMove.depth < EngineConstants.MAX_MOVEMENT_SEARCH_DEPTH
+				// 	) {
+				// 		const futureTurn = await playNextTurn(
+				// 			thisTurnPostMove,
+				// 			abortController,
+				// 		);
+				// 		if (futureTurn) {
+				// 			const { score: futureScore } = futureTurn;
 
-							scoredMoves.push({
-								nextTurn: thisTurnPostMove,
-								move,
-								score: futureScore,
-							});
-						} else {
-							scoredMoves.push({
-								nextTurn: thisTurnPostMove,
-								move,
-								score: movementOutput,
-							});
-						}
-					}
-				} else {
-					scoredMoves.push({
-						nextTurn: thisTurnPostMove,
-						move,
-						score: movementOutput,
-					});
-				}
+				// 			scoredMoves.push({
+				// 				nextTurn: thisTurnPostMove,
+				// 				move,
+				// 				score: futureScore,
+				// 			});
+				// 		} else {
+				// 			scoredMoves.push({
+				// 				nextTurn: thisTurnPostMove,
+				// 				move,
+				// 				score: movementOutput,
+				// 			});
+				// 		}
+				// 	}
+				// } else {
+				// 	scoredMoves.push({
+				// 		nextTurn: thisTurnPostMove,
+				// 		move,
+				// 		score: movementOutput,
+				// 	});
+				// }
 			}
 
 			if (!scoredMoves.length) return null;
@@ -1184,7 +1197,7 @@ export async function compareInstances(
 	return promise;
 }
 
-// (async () =>
-// 	compareInstances([initializeNewInstance(), initializeNewInstance()]).then(
-// 		console.log,
-// 	))();
+(async () =>
+	compareInstances([initializeNewInstance(), initializeNewInstance()]).then(
+		console.log,
+	))();

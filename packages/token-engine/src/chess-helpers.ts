@@ -64,6 +64,19 @@ export function isDraw(board: Chess) {
 	return board.isDraw() || board.isStalemate() || board.isThreefoldRepetition();
 }
 
+export function hasPromoted(board: Chess, square: Square) {
+	const lastMove = getLastMove(board);
+	if (!lastMove) {
+		return false;
+	}
+
+	if (lastMove.to !== square) {
+		return false;
+	}
+
+	return lastMove.flags.includes(FLAG_PROMOTION);
+}
+
 export function hasCastled(
 	board: Chess,
 	square: Square,

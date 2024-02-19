@@ -24,6 +24,7 @@ export type ProvidedVariableIds =
 	| 'is_draw'
 	| 'castled_king_side'
 	| 'castled_queen_side'
+	| 'promoted'
 	| 'was_captured'
 	| `${PieceNoKing}_was_captured`
 	| 'possible_moves'
@@ -78,6 +79,10 @@ export type ProvidedVariable =
 	  }
 	| {
 			id: 'castled_queen_side';
+			value: VariableBinaryValue;
+	  }
+	| {
+			id: 'promoted';
 			value: VariableBinaryValue;
 	  }
 	| {

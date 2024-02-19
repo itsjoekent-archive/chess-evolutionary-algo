@@ -10,8 +10,6 @@ By contrast, [evolutionary algorithms](https://en.wikipedia.org/wiki/Evolutionar
 
 While evolutionary algorithms are different from neural networks in a number of important aspects, evolutionary algorithms still rely on the concept of "training" the computer to search a problem space for an optimal solution.
 
-To get a deeper insight on how this process has been implemented, see [`SPEC.txt`](./SPEC.txt).
-
 ## Local Development
 
 ```sh
@@ -24,22 +22,8 @@ $ npm test -w @chess-evolutionary-algo/engine
 
 ## Running In The Cloud
 
-## License & Contributing
+## Contributing
 
-todo
+I am not actively seeking contributions to this repository, but feel free to fork it and make your own changes.
 
-- compile engine to dist folder, update package/main
-- promotion variable / handle promotions (always queen?)
-- variable for how many pieces remain (both sides?)
-- add event emitter to engine, refactor some stuff (eg: tokenmutations) to be events
-- create cache system for token evaluation? key: ${fen}-${color}-${variableId}
-- engine function for
-  - generating matchup arrays
-  - picking the top evaluation results from array of results
-  - creating next generation of instances
-- new sub-package for running the process
-  - run multiple threads
-  - use stack system for exchanging algorithms outside threads
-    - once all matchups are done, put best instance in the stack, pull from the top of the stack
-  - dump data from event emitter into document storage
-  - terraform files for infra
+This project is [MIT Licensed](./LICENSE).

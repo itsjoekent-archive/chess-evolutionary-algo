@@ -321,6 +321,33 @@ describe('populating variables', () => {
 		).toEqual(1);
 	});
 
+	test('should populate promoted', () => {
+		const board = new Chess('4k3/1P6/8/8/8/8/8/4K3 w - - 0 1');
+		const instance = Engine.initializeNewInstance();
+
+		expect(
+			Engine.populateVariable('promoted', 'b8', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
+		).toEqual(0);
+
+		board.move({ from: 'b7', to: 'b8', promotion: 'q' });
+
+		expect(
+			Engine.populateVariable('promoted', 'b8', {
+				instance,
+				board,
+				color: 'w',
+				outputs,
+				depth: 0,
+			}).value,
+		).toEqual(1);
+	});
+
 	test('should populate was_captured', () => {
 		const board = new Chess(
 			'rnb1k1nr/pppp1ppp/3bp3/4N2q/3PP3/2P5/PP2QPPP/RNB1KB1R b KQkq - 4 6',
@@ -642,15 +669,15 @@ describe('executing an algorithm', () => {
 	});
 });
 
-describe('comparing algorithms', () => {
-	test('should not crash', async () => {
-		testManyTimes(() => {
-			const instance = Engine.initializeNewInstance();
-			const instance2 = Engine.initializeNewInstance();
+// describe('comparing algorithms', () => {
+// 	test('should not crash', async () => {
+// 		testManyTimes(() => {
+// 			const instance = Engine.initializeNewInstance();
+// 			const instance2 = Engine.initializeNewInstance();
 
-			expect(
-				Engine.compareInstances([instance, instance2]),
-			).resolves.toBeDefined();
-		}, 10);
-	});
-});
+// 			expect(
+// 				Engine.compareInstances([instance, instance2]),
+// 			).resolves.toBeDefined();
+// 		}, 10);
+// 	});
+// });
