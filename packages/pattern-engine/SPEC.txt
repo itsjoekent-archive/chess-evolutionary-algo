@@ -80,8 +80,7 @@ or white).
     II. If a pattern matches, and the move is invalid, keep searching.
     III. If no pattern matches, generate a new instruction and use that.
 4. When the game ends, assess each player a fitness score (see below table)
-   and apply it to each instruction that was used. Resort the instruction
-   set based on the updated scores.
+   and update the sort of each instruction used by either -1/0/+1.
 
 When this process has been repeated many times, you can "mate" two
 different instruction sets by taking the top n% of instructions. For

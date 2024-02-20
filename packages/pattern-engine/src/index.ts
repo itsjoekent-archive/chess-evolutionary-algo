@@ -50,7 +50,23 @@ export type Instruction = {
 	fitness: number;
 };
 
-export type InstructionSet = Instruction[];
+export type InstructionSet = {
+	id: string;
+	instructions: Instruction[];
+};
+
+export type GeneratedInstructionEvent = {
+	instruction: Instruction;
+};
+
+export type GeneratedInstructionSetEvent = {
+	instructionSet: InstructionSet;
+};
+
+export type EngineEvent = {
+	generatedinstruction: GeneratedInstructionEvent;
+	generatedinstructionset: GeneratedInstructionSetEvent;
+};
 
 const MAX_SEGMENTS_PER_PATTERN = 32;
 
@@ -92,15 +108,19 @@ export class System {
 	private board: Chess;
 	private eventEmitter: EventEmitter;
 
-	private players: [InstructionSet, InstructionSet] | null;
+	private players: InstructionSet[];
 
-	constructor(args?: {
-    fen?: string
-    players?: [InstructionSet, InstructionSet],
-  }) {
+	constructor(args?: { fen?: string; players?: InstructionSet[] }) {
 		this.board = new Chess(args?.fen);
 		this.eventEmitter = new EventEmitter();
-    this.players = args?.players || null;
+		this.players = args?.players || [];
+	}
+
+	subscribe<K extends keyof EngineEvent, E extends EngineEvent[K]>(
+		event: K,
+		callback: (event: E) => void,
+	) {
+		this.eventEmitter.on(event, callback);
 	}
 
 	getAvailablePatternSquareStates(square: Square): PatternSquareState[] {
@@ -202,7 +222,22 @@ export class System {
 			fitness: 0,
 		};
 
+		const event: GeneratedInstructionEvent = { instruction };
+		this.eventEmitter.emit('generatedinstruction', event);
+
 		return instruction;
+	}
+
+	generateRandomInstructionSet(): InstructionSet {
+		const instructionSet = {
+			id: uuid(),
+			instructions: [],
+		};
+
+		const event: GeneratedInstructionSetEvent = { instructionSet };
+		this.eventEmitter.emit('generatedinstructionset', event);
+
+		return instructionSet;
 	}
 
 	convertPatternToSquare(
@@ -231,5 +266,24 @@ export class System {
 		const row = `${startingRowIndex + rowIncrement}` as Row;
 
 		return `${column}${row}`;
+	}
+
+	setupTournament(tournamentSize: number) {
+		for (let i = 0; i < tournamentSize; i++) {
+			if (this.players.length < tournamentSize) {
+				this.players.push(this.generateRandomInstructionSet());
+			}
+		}
+	}
+
+	playTournament() {
+		// create matchups
+		// play matchups
+		// return players sorted by fitness
+	}
+
+	evolvePlayers() {
+		// crossover top % of players
+		// mutate
 	}
 }

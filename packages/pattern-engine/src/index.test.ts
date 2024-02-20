@@ -1,6 +1,7 @@
 import { Chess } from 'chess.js';
-import { expect, test, describe } from 'vitest';
+import { expect, expectTypeOf, test, describe, vi } from 'vitest';
 import * as Engine from './index';
+import type { GeneratedInstructionEvent } from './index';
 
 function testManyTimes(
 	callback: (done: () => void) => void,
@@ -22,14 +23,28 @@ function testManyTimes(
 
 describe('generation', () => {
 	test('generate random instruction', () => {
+		const system = new Engine.System();
 		const board = new Chess();
-		const instruction = new Engine.System().generateRandomInstruction();
+
+		let instruction: Engine.Instruction;
+
+		const listener = vi.fn();
+
+		system.subscribe('generatedinstruction', (event) => {
+			expectTypeOf(event).toEqualTypeOf<GeneratedInstructionEvent>;
+		});
+
+		system.subscribe('generatedinstruction', listener);
+
+		instruction = system.generateRandomInstruction();
+
 		expect(instruction).toBeDefined();
 
 		expect(instruction.pattern[0]).toContain('!');
 		expect(instruction.pattern[1]).toContain('!');
 
 		expect(() => board.move(instruction.move)).not.toThrow();
+		expect(listener).toHaveBeenCalledWith({ instruction });
 	});
 
 	test('should always be less than 32 bits', () => {
@@ -77,7 +92,7 @@ describe('generation', () => {
 
 	test('should generate valid relative tokens', () => {
 		testManyTimes(() => {
-      const system = new Engine.System();
+			const system = new Engine.System();
 			const instruction = system.generateRandomInstruction();
 
 			instruction.pattern.forEach((segment) => {
@@ -93,21 +108,21 @@ describe('generation', () => {
 });
 
 describe('pattern conversion', () => {
-  test('absolute patterns', () => {
-    const system = new Engine.System();
-    const instruction = system.generateRandomInstruction();
-    expect(
+	test('absolute patterns', () => {
+		const system = new Engine.System();
+		const instruction = system.generateRandomInstruction();
+		expect(
 			system.convertPatternToSquare(instruction.pattern[0], instruction),
 		).toBe(instruction.move.from);
-  });
+	});
 
-  test('relative patterns', () => {
-    const system = new Engine.System();
+	test('relative patterns', () => {
+		const system = new Engine.System();
 		const instruction = system.generateRandomInstruction();
-    instruction.move.from = 'a1';
-    instruction.move.to = 'h8';
+		instruction.move.from = 'a1';
+		instruction.move.to = 'h8';
 
-    expect(system.convertPatternToSquare('%f+1+1=e', instruction)).toBe('b2');
-    expect(system.convertPatternToSquare('%t-6-6=e', instruction)).toBe('b2');
-  });
+		expect(system.convertPatternToSquare('%f+1+1=e', instruction)).toBe('b2');
+		expect(system.convertPatternToSquare('%t-6-6=e', instruction)).toBe('b2');
+	});
 });
