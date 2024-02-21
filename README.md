@@ -20,6 +20,8 @@ $ npm ci
 $ npm test -w @chess-evolutionary-algo/pattern-engine
 ```
 
+If you need to debug chess boards with fen syntax, use the [lichess chess editor](https://lichess.org/editor/). You can import a pgn [here](https://lichess.org/paste).
+
 ## Running In The Cloud
 
 ## Contributing

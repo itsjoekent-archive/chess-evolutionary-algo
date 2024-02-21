@@ -200,7 +200,7 @@ export type EngineEvents = {
   >;
 };
 
-const MAX_SEGMENTS_PER_PATTERN = 32;
+const MAX_SEGMENTS_PER_PATTERN = 12;
 
 export const DEFAULT_TOURNAMENT_SIZE = 16;
 
@@ -850,7 +850,7 @@ export class System {
     const targetInstructionListLength = Math.floor(
       ((topPlayers[0].instructions.length + topPlayers[1].instructions.length) /
         2) *
-        0.6,
+        0.85,
     );
 
     const offspringToGenerate = Object.keys(this.players).length - 2;

@@ -1,0 +1,15 @@
+{
+  "name": "@chess-evolutionary-algo/runner",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx src/index.ts",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17"
+  },
+  "dependencies": {
+    "@chess-evolutionary-algo/pattern-engine": "*"
+  }
+}
