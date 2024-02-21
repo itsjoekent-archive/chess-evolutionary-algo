@@ -15,3 +15,7 @@ function test() {
 
 system.setupTournament();
 test();
+
+// run across multiple cores
+// save results to a database (event subscribers --> document)
+// migrate best players across systems, machines
