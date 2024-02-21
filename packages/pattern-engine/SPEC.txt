@@ -38,8 +38,8 @@ square, or the 'to' square.
 %[f/t](+/-)${0-8}(+/-)${0-8}
 ```
 
-The state can be described as either empty ('E'), friendly ('F'), a piece
-that can be captured ('C'), or a piece with a specific color (eg: 'bq').
+The state can be described as either empty ('e'), friendly ('f'), a piece
+that can be captured ('c'), or a piece with a specific color (eg: 'bq').
 
 A complete representation of location and state would look like `!a1=bp`.
 
@@ -90,12 +90,10 @@ to the instruction set.
 This process repeats until an optimal solution is discovered.
 
 Fitness points are awarded as follows,
-* `+1` for each turn played.
+* `ceil(n * 0.5)` for each tournament round.
+* `+1` for each turn played before move 100, `-1` for every move after move 100.
 * `+2` for capturing a piece.
-* `-1` for losing a piece.
+* `+3` for promoting a piece.
 * `+3` for putting the king in check.
-* `-1` for being put in check.
 * `+5` for forcing draw (three-fold repition, etc).
-* `-1` for being forced into a draw.
-* `-10` for losing by checkmate.
-* `+50` for checkmating.
+* `+250` for checkmating.

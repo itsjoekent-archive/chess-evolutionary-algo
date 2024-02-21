@@ -1,7 +1,7 @@
 import { Chess } from 'chess.js';
 import { expect, expectTypeOf, test, describe, vi } from 'vitest';
 import * as Engine from './index';
-import type { GeneratedInstructionEvent } from './index';
+import type { EngineEvents } from './index';
 
 function testManyTimes(
 	callback: (done: () => void) => void,
@@ -26,17 +26,7 @@ describe('generation', () => {
 		const system = new Engine.System();
 		const board = new Chess();
 
-		let instruction: Engine.Instruction;
-
-		const listener = vi.fn();
-
-		system.subscribe('generatedinstruction', (event) => {
-			expectTypeOf(event).toEqualTypeOf<GeneratedInstructionEvent>;
-		});
-
-		system.subscribe('generatedinstruction', listener);
-
-		instruction = system.generateRandomInstruction();
+		const instruction = system.generateRandomInstruction();
 
 		expect(instruction).toBeDefined();
 
@@ -44,7 +34,6 @@ describe('generation', () => {
 		expect(instruction.pattern[1]).toContain('!');
 
 		expect(() => board.move(instruction.move)).not.toThrow();
-		expect(listener).toHaveBeenCalledWith({ instruction });
 	});
 
 	test('should always be less than 32 bits', () => {
@@ -124,5 +113,26 @@ describe('pattern conversion', () => {
 
 		expect(system.convertPatternToSquare('%f+1+1=e', instruction)).toBe('b2');
 		expect(system.convertPatternToSquare('%t-6-6=e', instruction)).toBe('b2');
+	});
+});
+
+describe('tournament', () => {
+	test('should set up a tournament', () => {
+		const system = new Engine.System();
+		const listener = vi.fn();
+
+		system.subscribe('added_player', (event) => {
+			expectTypeOf(event).toEqualTypeOf<EngineEvents['added_player']>;
+		});
+
+		system.subscribe('added_player', listener);
+
+		system.setupTournament(12);
+		expect(Object.keys(system.getPlayers())).toHaveLength(12);
+
+		expect(listener).toHaveBeenCalledTimes(12);
+		expect(listener).toHaveBeenCalledWith(
+			expect.objectContaining({ payload: expect.anything() }),
+		);
 	});
 });
