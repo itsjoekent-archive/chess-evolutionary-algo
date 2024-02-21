@@ -17,7 +17,7 @@ $ nvm install && nvm use
 $ npm ci
 
 # Run engine tests
-$ npm test -w @chess-evolutionary-algo/engine
+$ npm test -w @chess-evolutionary-algo/pattern-engine
 ```
 
 ## Running In The Cloud
