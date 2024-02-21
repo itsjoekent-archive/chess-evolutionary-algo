@@ -350,13 +350,14 @@ export class System {
 			const targetMove = EngineUtils.flipCoin() ? 'from' : 'to';
 			const targetSquare = instructionMove[targetMove];
 
-			const columnIndex = columnsToNumericIndexes[targetSquare[0] as Column];
-			const rowIndex = parseInt(targetSquare[1]);
+			const targetColumnIndex =
+				columnsToNumericIndexes[targetSquare[0] as Column];
+			const targetRowIndex = parseInt(targetSquare[1]);
 
-			for (let row = 1; row <= 8; row++) {
-				for (let column = 1; column <= 8; column++) {
-					const rowDifference = rowIndex - row;
-					const columnDifference = columnIndex - column;
+			for (let rowIndex = 1; rowIndex <= 8; rowIndex++) {
+				for (let columnIndex = 1; columnIndex <= 8; columnIndex++) {
+					const rowDifference = rowIndex - targetRowIndex;
+					const columnDifference = columnIndex - targetColumnIndex;
 
 					if (rowDifference === 0 && columnDifference === 0) continue;
 
@@ -783,7 +784,7 @@ export class System {
 			this.emit('game_ended', {
 				id: game.id,
 				fen: this.board.fen(),
-        pgn: this.board.pgn(),
+				pgn: this.board.pgn(),
 				winner: winnerId,
 				loser: loserId,
 				duration,
@@ -899,15 +900,3 @@ export class System {
 		}, {});
 	}
 }
-
-let s = new System();
-// s.firehose(console.log);
-s.subscribe('instruction_match', console.log);
-// s.subscribe('update_fitness_score', console.log);
-s.subscribe('game_ended', console.log);
-// s.subscribe('spawned', e => console.log(e.payload.instructionSet.instructions));
-s.setupTournament(4);
-const outcome = s.startTournament();
-s.evolvePlayers(outcome);
-console.log(s.startTournament());
-// console.log(JSON.stringify(s.getPlayers(), null, 2));
