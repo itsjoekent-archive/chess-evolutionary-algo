@@ -17,153 +17,153 @@ export const QUEEN = 'q';
 export const KING = 'k';
 
 export function hasPiece(board: Chess, square: Square) {
-	return !!board.get(square);
+  return !!board.get(square);
 }
 
 export function isPieceColor(
-	board: Chess,
-	square: Square,
-	color: Piece['color'],
+  board: Chess,
+  square: Square,
+  color: Piece['color'],
 ) {
-	return !!(board.get(square)?.color === color);
+  return !!(board.get(square)?.color === color);
 }
 
 export function isPieceType(board: Chess, square: Square, type: Piece['type']) {
-	return !!(board.get(square)?.type === type);
+  return !!(board.get(square)?.type === type);
 }
 
 export function isBishop(board: Chess, square: Square) {
-	return isPieceType(board, square, BISHOP);
+  return isPieceType(board, square, BISHOP);
 }
 
 export function isKing(board: Chess, square: Square) {
-	return isPieceType(board, square, KING);
+  return isPieceType(board, square, KING);
 }
 
 export function isKnight(board: Chess, square: Square) {
-	return isPieceType(board, square, KNIGHT);
+  return isPieceType(board, square, KNIGHT);
 }
 
 export function isPawn(board: Chess, square: Square) {
-	return isPieceType(board, square, PAWN);
+  return isPieceType(board, square, PAWN);
 }
 
 export function isQueen(board: Chess, square: Square) {
-	return isPieceType(board, square, QUEEN);
+  return isPieceType(board, square, QUEEN);
 }
 
 export function isRook(board: Chess, square: Square) {
-	return isPieceType(board, square, ROOK);
+  return isPieceType(board, square, ROOK);
 }
 
 export function getLastMove(board: Chess) {
-	return board.history({ verbose: true }).pop();
+  return board.history({ verbose: true }).pop();
 }
 
 export function isDraw(board: Chess) {
-	return board.isDraw() || board.isStalemate() || board.isThreefoldRepetition();
+  return board.isDraw() || board.isStalemate() || board.isThreefoldRepetition();
 }
 
 export function hasPromoted(board: Chess, square: Square) {
-	const lastMove = getLastMove(board);
-	if (!lastMove) {
-		return false;
-	}
+  const lastMove = getLastMove(board);
+  if (!lastMove) {
+    return false;
+  }
 
-	if (lastMove.to !== square) {
-		return false;
-	}
+  if (lastMove.to !== square) {
+    return false;
+  }
 
-	return lastMove.flags.includes(FLAG_PROMOTION);
+  return lastMove.flags.includes(FLAG_PROMOTION);
 }
 
 export function hasCastled(
-	board: Chess,
-	square: Square,
-	side: 'kingside' | 'queenside',
+  board: Chess,
+  square: Square,
+  side: 'kingside' | 'queenside',
 ) {
-	if (!isKing(board, square)) {
-		return false;
-	}
+  if (!isKing(board, square)) {
+    return false;
+  }
 
-	const lastMove = getLastMove(board);
-	if (!lastMove) {
-		return false;
-	}
+  const lastMove = getLastMove(board);
+  if (!lastMove) {
+    return false;
+  }
 
-	return side === 'kingside'
-		? lastMove.flags.includes(FLAG_KSIDE_CASTLE)
-		: lastMove.flags.includes(FLAG_QSIDE_CASTLE);
+  return side === 'kingside'
+    ? lastMove.flags.includes(FLAG_KSIDE_CASTLE)
+    : lastMove.flags.includes(FLAG_QSIDE_CASTLE);
 }
 
 export function checkCapture(
-	board: Chess,
-	square: Square,
-	filters?: {
-		type?: Piece['type'];
-	},
+  board: Chess,
+  square: Square,
+  filters?: {
+    type?: Piece['type'];
+  },
 ) {
-	const lastMove = getLastMove(board);
-	if (!lastMove || lastMove.to !== square) {
-		return false;
-	}
+  const lastMove = getLastMove(board);
+  if (!lastMove || lastMove.to !== square) {
+    return false;
+  }
 
-	if (
-		!lastMove.flags.includes(FLAG_CAPTURE) &&
-		!lastMove.flags.includes(FLAG_EP_CAPTURE)
-	) {
-		return false;
-	}
+  if (
+    !lastMove.flags.includes(FLAG_CAPTURE) &&
+    !lastMove.flags.includes(FLAG_EP_CAPTURE)
+  ) {
+    return false;
+  }
 
-	if (!filters) return true;
+  if (!filters) return true;
 
-	const priorBoard = new Chess(lastMove.before);
+  const priorBoard = new Chess(lastMove.before);
 
-	if (filters.type && !isPieceType(priorBoard, square, filters.type)) {
-		return false;
-	}
+  if (filters.type && !isPieceType(priorBoard, square, filters.type)) {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 export function filterMoves(
-	board: Chess,
-	filters?: {
-		toSquare?: Square;
-		fromSquare?: Square;
-		type?: Piece['type'];
-		isCapturing?: boolean | Piece['type'];
-	},
+  board: Chess,
+  filters?: {
+    toSquare?: Square;
+    fromSquare?: Square;
+    type?: Piece['type'];
+    isCapturing?: boolean | Piece['type'];
+  },
 ): number {
-	let moveCount: number = 0;
-	const moves = board.moves({ verbose: true });
+  let moveCount: number = 0;
+  const moves = board.moves({ verbose: true });
 
-	for (const move of moves) {
-		if (filters?.toSquare && move.to !== filters?.toSquare) {
-			continue;
-		}
+  for (const move of moves) {
+    if (filters?.toSquare && move.to !== filters?.toSquare) {
+      continue;
+    }
 
-		if (filters?.fromSquare && move.from !== filters?.fromSquare) {
-			continue;
-		}
+    if (filters?.fromSquare && move.from !== filters?.fromSquare) {
+      continue;
+    }
 
-		if (filters?.type && move.piece !== filters.type) {
-			continue;
-		}
+    if (filters?.type && move.piece !== filters.type) {
+      continue;
+    }
 
-		if (filters?.isCapturing && !hasPiece(board, move.to)) {
-			continue;
-		}
+    if (filters?.isCapturing && !hasPiece(board, move.to)) {
+      continue;
+    }
 
-		if (
-			typeof filters?.isCapturing === 'string' &&
-			!isPieceType(board, move.to, filters.isCapturing)
-		) {
-			continue;
-		}
+    if (
+      typeof filters?.isCapturing === 'string' &&
+      !isPieceType(board, move.to, filters.isCapturing)
+    ) {
+      continue;
+    }
 
-		moveCount++;
-	}
+    moveCount++;
+  }
 
-	return moveCount;
+  return moveCount;
 }
