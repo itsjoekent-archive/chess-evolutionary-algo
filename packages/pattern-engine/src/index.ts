@@ -81,14 +81,9 @@ export type EngineEvents = {
   tournament_ended: EngineEvent<
     'tournament_ended',
     {
+      players: Record<InstructionSet['id'], InstructionSet>;
       outcome: TournamentOutcome;
       duration: number;
-    }
-  >;
-  added_player: EngineEvent<
-    'added_player',
-    {
-      player: InstructionSet;
     }
   >;
   matchups: EngineEvent<
@@ -195,7 +190,7 @@ export type EngineEvents = {
     'spawned',
     {
       instructionSet: InstructionSet;
-      parents: [InstructionSet['id'], InstructionSet['id']];
+      parents?: [InstructionSet['id'], InstructionSet['id']];
     }
   >;
 };
@@ -280,7 +275,6 @@ export class System {
     const events: (keyof EngineEvents)[] = [
       'tournament_started',
       'tournament_ended',
-      'added_player',
       'matchups',
       'started_game',
       'game_ended',
@@ -540,7 +534,7 @@ export class System {
     for (let i = 0; i < tournamentSize; i++) {
       if (Object.keys(this.players).length < tournamentSize) {
         const instructionSet = this.generateRandomInstructionSet();
-        this.emit('added_player', { player: instructionSet });
+        this.emit('spawned', { instructionSet });
         this.players[instructionSet.id] = instructionSet;
       }
     }
@@ -827,6 +821,7 @@ export class System {
     );
 
     this.emit('tournament_ended', {
+      players: this.getPlayers(),
       outcome: tournamentOutcome,
       duration: Date.now() - startedAt,
     });
@@ -840,12 +835,14 @@ export class System {
     );
 
     const topPlayerIds = playerFitnessScores.slice(0, 2);
-    const topPlayers = topPlayerIds.map((id) => this.players[id]);
+    const topPlayers = topPlayerIds.map((id) =>
+      Object.assign({}, this.players[id]),
+    );
 
-    const children: InstructionSet[] = [
-      Object.assign({}, topPlayers[0]),
-      Object.assign({}, topPlayers[1]),
-    ];
+    topPlayers[0].instructions.sort((a, b) => b.rank - a.rank);
+    topPlayers[1].instructions.sort((a, b) => b.rank - a.rank);
+
+    const children: InstructionSet[] = [topPlayers[0], topPlayers[1]];
 
     const targetInstructionListLength = Math.floor(
       ((topPlayers[0].instructions.length + topPlayers[1].instructions.length) /
@@ -870,10 +867,10 @@ export class System {
           EngineUtils.randomBoxMuller(0, parent.instructions.length - 1, 3),
         );
 
-        const newInstruction = {
-          ...parent.instructions[copyIndex],
-          id: uuid(),
-        };
+        const newInstruction = Object.assign(
+          {},
+          parent.instructions[copyIndex],
+        );
 
         if (Math.random() < MUTATION_RATE) {
           const adjustment = EngineUtils.getRandomInt(1, 3);
@@ -898,5 +895,16 @@ export class System {
       acc[player.id] = player;
       return acc;
     }, {});
+  }
+
+  migration(newPlayers: InstructionSet[]) {
+    for (let i = 0; i < newPlayers.length; i++) {
+      const replaceIndex = Object.keys(this.players).length - 1 - i;
+      if (replaceIndex < 0) {
+        throw new Error('Invalid number of players in migration');
+      }
+
+      this.players[replaceIndex] = newPlayers[i];
+    }
   }
 }

@@ -7,9 +7,10 @@
     "test": "vitest"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17"
+    "@types/node": "^20.11.19"
   },
   "dependencies": {
-    "@chess-evolutionary-algo/pattern-engine": "*"
+    "@chess-evolutionary-algo/pattern-engine": "*",
+    "@google-cloud/storage": "^7.7.0"
   }
 }
