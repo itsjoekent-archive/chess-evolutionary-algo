@@ -74,13 +74,11 @@ async function uploadFile(key: string, data: any) {
       contentType: 'application/json',
     });
   } catch (error) {
-    console.log(error);
+    log(error?.message);
   }
 }
 
 async function main(threadId: string) {
-  let uploads: Parameters<typeof uploadFile>[] = [];
-
   let tournamentCount = 0;
   let existingPlayers: Record<string, InstructionSet> = {};
 
@@ -99,15 +97,15 @@ async function main(threadId: string) {
     log(`game started ...`);
   });
 
-  system.subscribe('game_ended', (event) => {
+  system.subscribe('game_ended', async (event) => {
     log(
       `game ended => fen: "${event.payload.fen}", winning score: ${event.payload.winningFitnessScore}, losing score: ${event.payload.losingFitnessScore}, winning player: "${event.payload.winner}", losing player: "${event.payload.loser}"`,
     );
 
-    uploads.push([`games/${event.payload.id}`, event.payload]);
+    await uploadFile(`games/${event.payload.id}`, event.payload);
   });
 
-  system.subscribe('tournament_ended', (event) => {
+  system.subscribe('tournament_ended', async (event) => {
     const {
       payload: { outcome, players },
     } = event;
@@ -121,33 +119,22 @@ async function main(threadId: string) {
       Object.assign({}, players[playerFitnessScores[1]]),
     ];
 
-    uploads.push([
-      `tournaments/${machineName}/${threadId}/latest`,
-      { players: topPlayers },
-    ]);
+    await uploadFile(`tournaments/${machineName}/${threadId}/latest`, { players: topPlayers });
 
-    Object.keys(players).forEach((id) => {
-      uploads.push([`players/${id}`, players[id]]);
-    });
+    for (const [id, player] of topPlayers.entries()) {
+      await uploadFile(`players/${id}`, player);
+    }
   });
 
   async function run() {
     log(`running tournament ...`);
-    const result = system.startTournament();
+    const result = await system.startTournament();
     system.evolvePlayers(result);
 
     if (tournamentCount > 0 && tournamentCount % 10 === 0) {
       const topPlayers = await getRandomTopPlayers();
       log(`migrating top players => ${topPlayers.map((p) => p.id).join(', ')}`);
       system.migration(topPlayers);
-    }
-
-    if (uploads.length) {
-      for (const [key, data] of uploads) {
-        log(`uploading file => ${key}`);
-        await uploadFile(key, data);
-      }
-      uploads = [];
     }
 
     tournamentCount++;
@@ -177,7 +164,7 @@ function startWorker(threadId: string) {
   });
 
   worker.on('message', (message) => {
-    console.log(message);
+    process.nextTick(() => console.log(message));
   });
 }
 
@@ -195,7 +182,7 @@ if (isMainThread) {
     startWorker(threadIds[i + 1]);
   }
 
-  setTimeout(() => main(threadIds[0]), 1000);
+  main(threadIds[0]);
 } else {
   main(workerData.threadId);
 }

@@ -117,15 +117,15 @@ describe('pattern conversion', () => {
 });
 
 describe('tournament', () => {
-  test('should set up a tournament', () => {
+  test('should set up a tournament', async () => {
     const system = new Engine.System();
     const listener = vi.fn();
 
-    system.subscribe('added_player', (event) => {
-      expectTypeOf(event).toEqualTypeOf<EngineEvents['added_player']>;
+    system.subscribe('spawned', (event) => {
+      expectTypeOf(event).toEqualTypeOf<EngineEvents['spawned']>;
     });
 
-    system.subscribe('added_player', listener);
+    system.subscribe('spawned', listener);
 
     system.setupTournament(12);
     expect(Object.keys(system.getPlayers())).toHaveLength(12);

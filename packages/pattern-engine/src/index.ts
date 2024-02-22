@@ -540,11 +540,11 @@ export class System {
     }
   }
 
-  private playTournamentRoundWith(
+  private async playTournamentRoundWith(
     playerIds: InstructionSet['id'][],
     priorTournamentOutcome?: TournamentOutcome,
     tournamentRound: number = 1,
-  ): TournamentOutcome {
+  ): Promise<TournamentOutcome> {
     if (playerIds.length < 2 || playerIds.length % 2 !== 0) {
       throw new Error('Invalid number of players');
     }
@@ -613,6 +613,9 @@ export class System {
       let forceGameEnd = false;
 
       while (!this.board.isGameOver() && !forceGameEnd) {
+        // allow event loop to process other stuff
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
         const turnId = uuid();
         const startedTurnAt = Date.now();
 
@@ -802,7 +805,7 @@ export class System {
     return tournamentOutcome;
   }
 
-  startTournament(): TournamentOutcome {
+  async startTournament(): Promise<TournamentOutcome> {
     if (
       Object.keys(this.players).length < 2 ||
       Object.keys(this.players).length % 2 !== 0
@@ -816,7 +819,7 @@ export class System {
     });
 
     const startedAt = Date.now();
-    const tournamentOutcome = this.playTournamentRoundWith(
+    const tournamentOutcome = await this.playTournamentRoundWith(
       Object.keys(this.players),
     );
 
