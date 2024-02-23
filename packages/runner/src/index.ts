@@ -7,10 +7,13 @@ import {
 } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import AWS from '@aws-sdk/client-s3';
+import { config } from 'dotenv';
 import {
   System,
   InstructionSet,
 } from '@chess-evolutionary-algo/pattern-engine';
+
+config();
 
 const __filename = fileURLToPath(import.meta.url);
 
