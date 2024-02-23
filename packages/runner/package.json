@@ -10,7 +10,7 @@
     "@types/node": "^20.11.19"
   },
   "dependencies": {
-    "@chess-evolutionary-algo/pattern-engine": "*",
-    "@google-cloud/storage": "^7.7.0"
+    "@aws-sdk/client-s3": "^3.515.0",
+    "@chess-evolutionary-algo/pattern-engine": "*"
   }
 }

@@ -6,7 +6,7 @@ import {
   parentPort,
 } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
-import { Storage } from '@google-cloud/storage';
+import AWS from '@aws-sdk/client-s3';
 import {
   System,
   InstructionSet,
@@ -14,9 +14,29 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 
-const bucketName = process.env.STORAGE_BUCKET as string;
-if (!bucketName) {
-  throw new Error('STORAGE_BUCKET not defined');
+const spacesName = process.env.DO_SPACES_NAME as string;
+if (!spacesName) {
+  throw new Error('DO_SPACES_NAME not defined');
+}
+
+const spacesEndpoint = process.env.DO_SPACES_ENDPOINT as string;
+if (!spacesEndpoint) {
+  throw new Error('DO_SPACES_ENDPOINT not defined');
+}
+
+const spacesRegion = process.env.DO_SPACES_REGION as string;
+if (!spacesRegion) {
+  throw new Error('DO_SPACES_REGION not defined');
+}
+
+const spacesKey = process.env.DO_SPACES_KEY as string;
+if (!spacesKey) {
+  throw new Error('DO_SPACES_KEY not defined');
+}
+
+const spacesSecret = process.env.DO_SPACES_SECRET as string;
+if (!spacesSecret) {
+  throw new Error('DO_SPACES_SECRET not defined');
 }
 
 const machineName = process.env.MACHINE_NAME as string;
@@ -30,7 +50,15 @@ const log = (msg: string) =>
     ? console.log(`${loggerName} - ${msg}`)
     : parentPort!.postMessage(`${loggerName} - ${msg}`);
 
-const storage = new Storage();
+const s3 = new AWS.S3Client({
+  endpoint: spacesEndpoint,
+  region: spacesRegion,
+  forcePathStyle: false,
+  credentials: {
+    accessKeyId: spacesKey,
+    secretAccessKey: spacesSecret,
+  },
+});
 
 const threadIds = [
   'alpha',
@@ -50,29 +78,46 @@ const threadIds = [
 ];
 
 async function loadTopPlayers(fromMachineId: string, fromThreadId: string) {
-  const data = await storage
-    .bucket(bucketName)
-    .file(`tournaments/${fromMachineId}/${fromThreadId}/latest`)
-    .download();
+  const data = await s3.send(new AWS.GetObjectCommand({
+    Bucket: spacesName,
+    Key: `tournaments/${fromMachineId}/${fromThreadId}/latest`,
+  }));
+
   const { players } = JSON.parse(data.toString());
   return players as InstructionSet[];
 }
 
 async function getRandomTopPlayers() {
-  const [files] = await storage
-    .bucket(bucketName)
-    .getFiles({ prefix: 'tournament/' });
-  const randomFile = files[Math.floor(Math.random() * files.length)];
-  const data = await randomFile.download();
+  const { Contents } = await s3.send(new AWS.ListObjectsV2Command({
+    Bucket: spacesName,
+    Prefix: 'tournaments/',
+  }));
+
+  const possibleTournaments = Contents!.map((({ Key: key }) => key)).filter(key =>
+    key?.includes(`${machineName}-${workerData?.threadId || 'alpha'}`),
+  );
+
+  const randomTournament =
+    possibleTournaments[Math.floor(Math.random() * possibleTournaments.length)];
+
+  const data = await s3.send(new AWS.GetObjectCommand({
+    Bucket: spacesName,
+    Key: randomTournament,
+  }));
+
   const { players } = JSON.parse(data.toString());
   return players as InstructionSet[];
 }
 
 async function uploadFile(key: string, data: any) {
   try {
-    await storage.bucket(bucketName).file(key).save(JSON.stringify(data), {
-      contentType: 'application/json',
-    });
+    await s3.send(new AWS.PutObjectCommand({
+      Bucket: spacesName,
+      Key: key,
+      Body: JSON.stringify(data),
+      ContentType: 'application/json',
+      ACL: 'private',
+    }));
   } catch (error) {
     log(error?.message);
   }
@@ -121,8 +166,8 @@ async function main(threadId: string) {
 
     await uploadFile(`tournaments/${machineName}/${threadId}/latest`, { players: topPlayers });
 
-    for (const [id, player] of topPlayers.entries()) {
-      await uploadFile(`players/${id}`, player);
+    for (const playerId of Object.keys(players)) {
+      await uploadFile(`players/${playerId}`, players[playerId]);
     }
   });
 
@@ -172,8 +217,6 @@ process.on('unhandledRejection', (error: any) => {
   console.error(error?.message);
   process.exitCode = 1;
 });
-
-await storage.getServiceAccount();
 
 if (isMainThread) {
   const workers = cpus().length - 1;
