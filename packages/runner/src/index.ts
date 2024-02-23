@@ -187,7 +187,7 @@ async function main(threadId: string) {
   }
 
   log(`setting up tournament ...`);
-  system.setupTournament(4);
+  system.setupTournament();
   run();
 }
 
