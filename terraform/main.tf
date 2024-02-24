@@ -69,22 +69,30 @@ resource "digitalocean_droplet" "machines" {
     private_key = sensitive(file(local.envs["SSH_PRIVATE_KEY_PATH"]))
   }
 
+  provisioner "file" {
+    content = templatefile("../packages/runner/.env.example", {
+      DO_SPACES_NAME     = digitalocean_spaces_bucket.default.name
+      DO_SPACES_REGION   = digitalocean_spaces_bucket.default.region
+      DO_SPACES_ENDPOINT = "https://${digitalocean_spaces_bucket.default.region}.digitaloceanspaces.com"
+      DO_SPACES_KEY      = local.envs["DO_SPACES_ACCESS_ID"]
+      DO_SPACES_SECRET   = local.envs["DO_SPACES_SECRET_KEY"]
+      MACHINE_NAME       = "m${count.index + 1}"
+    })
+    destination = "/etc/.env.runner"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "export PATH=$PATH:/usr/bin",
-      "export DO_SPACES_NAME=${digitalocean_spaces_bucket.default.name}",
-      "export DO_SPACES_REGION=${digitalocean_spaces_bucket.default.region}",
-      "export DO_SPACES_ENDPOINT=https://${digitalocean_spaces_bucket.default.region}.digitaloceanspaces.com",
-      "export DO_SPACES_KEY=${local.envs["DO_SPACES_ACCESS_ID"]}",
-      "export DO_SPACES_SECRET=${local.envs["DO_SPACES_SECRET_KEY"]}",
-      "export MACHINE_NAME=m${count.index + 1}",
       # install node version manager
       "sudo apt update -y",
       "sudo apt install curl -y",
       "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash",
+      ". ~/.bashrc",
       # install source
       "git clone ${local.source}",
       "cd chess-evolutionary-algo",
+      # set env variables
+      "cp /etc/.env.runner packages/runner/.env",
       # install node & dependencies
       "nvm install && nvm use",
       "npm ci",
@@ -100,25 +108,25 @@ resource "digitalocean_firewall" "firewall" {
   droplet_ids = [for machine in digitalocean_droplet.machines : machine.id]
 
   inbound_rule {
-    protocol   = "tcp"
-    port_range = "22"
+    protocol         = "tcp"
+    port_range       = "22"
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
   outbound_rule {
-    protocol   = "tcp"
-    port_range = "1-65535"
+    protocol              = "tcp"
+    port_range            = "1-65535"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 
   outbound_rule {
-    protocol   = "udp"
-    port_range = "1-65535"
+    protocol              = "udp"
+    port_range            = "1-65535"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 
   outbound_rule {
-    protocol = "icmp"
+    protocol              = "icmp"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 }
@@ -129,10 +137,8 @@ resource "digitalocean_project" "default" {
   environment = "Development"
 
   resources = concat([
-    for machine in digitalocean_droplet.machines : machine.id
+    for machine in digitalocean_droplet.machines : machine.urn
     ], [
-    digitalocean_ssh_key.default.id,
-    digitalocean_firewall.firewall.id,
-    digitalocean_spaces_bucket.default.id,
+    digitalocean_spaces_bucket.default.urn,
   ])
 }
