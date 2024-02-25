@@ -33,6 +33,11 @@ variable "machine_type" {
   default = "s-4vcpu-8gb"
 }
 
+variable "max_node_memory" {
+  type    = number
+  default = 7500 // 7.5gb in mb
+}
+
 provider "digitalocean" {
   token = local.envs["DO_TOKEN"]
 
@@ -97,7 +102,7 @@ resource "digitalocean_droplet" "machines" {
       "nvm install && nvm use",
       "npm ci",
       # start runner in background
-      "tmux new -d 'npm start -w @chess-evolutionary-algo/runner'"
+      "tmux new -d 'NODE_OPTIONS=--max-old-space-size=${var.max_node_memory} npm start -w @chess-evolutionary-algo/runner'"
     ]
   }
 }
