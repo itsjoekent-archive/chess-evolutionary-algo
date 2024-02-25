@@ -181,28 +181,6 @@ export const DEFAULT_TOURNAMENT_SIZE = 16;
 
 const MUTATION_RATE = 0.075;
 
-const columnsToNumericIndexes: Record<Column, number> = {
-  a: 1,
-  b: 2,
-  c: 3,
-  d: 4,
-  e: 5,
-  f: 6,
-  g: 7,
-  h: 8,
-};
-
-const numericIndexesToColumns: Record<number, Column> = {
-  1: 'a',
-  2: 'b',
-  3: 'c',
-  4: 'd',
-  5: 'e',
-  6: 'f',
-  7: 'g',
-  8: 'h',
-};
-
 const fitnessScores = {
   tournamentMultiplier: 0.5,
   turn: 1,
@@ -771,8 +749,10 @@ export class System {
       for (let j = 0; j < targetInstructionListLength; j++) {
         const parent = EngineUtils.flipCoin() ? topPlayers[0] : topPlayers[1];
 
-        const copyIndex = Math.floor(
-          EngineUtils.randomBoxMuller(0, parent.instructions.length - 1, 3),
+        const copyIndex = EngineUtils.biasedRandom(
+          0,
+          parent.instructions.length - 1,
+          1.5,
         );
 
         const newInstruction = Object.assign(
