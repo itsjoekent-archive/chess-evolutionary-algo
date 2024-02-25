@@ -26,7 +26,7 @@ be added to the players entire instruction set.
 Patterns are a series of conditionals strings that describe a square
 location and what state the square should be in.
 
-Locations are represented as an absolute column+row (eg: '!a1').
+Locations are represented as an absolute column+row (eg: 'a1').
 
 The state can be described as either empty ('e'), friendly ('f'), a piece
 that can be captured ('c'), or a piece with a specific color (eg: 'bq').
