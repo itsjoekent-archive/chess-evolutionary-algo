@@ -147,7 +147,7 @@ async function main(threadId: string) {
 
   system.subscribe('game_ended', async (event) => {
     log(
-      `game ended => fen: "${event.payload.fen}", winning score: ${event.payload.winningFitnessScore}, losing score: ${event.payload.losingFitnessScore}, winning player: "${event.payload.winner}", losing player: "${event.payload.loser}"`,
+      `game ended => duration: ${event.payload.duration / 1000}s, fen: "${event.payload.fen}", winning score: ${event.payload.winningFitnessScore}, losing score: ${event.payload.losingFitnessScore}, winning player: "${event.payload.winner}", losing player: "${event.payload.loser}"`,
     );
 
     await uploadFile(`games/${event.payload.id}`, event.payload);
