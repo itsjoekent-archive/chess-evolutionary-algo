@@ -23,32 +23,19 @@ be added to the players entire instruction set.
 
 === PATTERNS ==============================================================
 
-Patterns are a series of strings ('segments') that describe a square
+Patterns are a series of conditionals strings that describe a square
 location and what state the square should be in.
 
-Locations can be represented in two formats, absolute and relative.
-
-Absolute locations have a 1:1 correlation with a square on the board,
-(eg: '!a1'). Whereas relative locations are relative to another square on
-the board. These relative locations can either be the first the 'from'
-square, or the 'to' square.
-
-```
-  start  a->h       1->8
-%[f/t](+/-)${0-8}(+/-)${0-8}
-```
+Locations are represented as an absolute column+row (eg: '!a1').
 
 The state can be described as either empty ('e'), friendly ('f'), a piece
 that can be captured ('c'), or a piece with a specific color (eg: 'bq').
 
-A complete representation of location and state would look like `!a1=bp`.
+A complete representation of location and state would look like `a1=bp`.
 
-A pattern is a series of these individual segments. The total amount of 
-segments is random, but with a min length of 2 and a max length of 32, 
-with a bias towards generating in the middle of these values. The segments 
-that represent the 'to' and 'from' must be absolute, and are stored
-independently (see instruction data structure below).
-
+A pattern is a series of these individual conditionals. The total amount of 
+conditionals is random, but with a min length of 2 and a max length of 12.
+Two of the conditionals must represent the 'to' and 'from' of a valid move.
 
 === INSTRUCTIONS ==========================================================
 
@@ -61,7 +48,11 @@ must be described within the pattern.
     from: 'b2',
     to: 'b4',
   },
-  pattern: `!a2=bp,!b2=bp,!b4=e`,
+  pattern: [
+    'a2=bp',
+    'b2=bp',
+    'b4=e'
+  ],
 }
 ```
 

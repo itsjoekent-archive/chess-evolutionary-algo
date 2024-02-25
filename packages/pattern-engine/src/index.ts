@@ -14,29 +14,9 @@ export type Piece = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 
 export type PatternSquareState = `${Color}${Piece}` | 'c' | 'e' | 'f';
 
-export type AbsolutePatternLocation = `!${Square}`;
+export type PatternConditional = `${Square}=${PatternSquareState}`;
 
-type RelativePatternRange = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
-type RelativePatternOperation = '+' | '-';
-type RelativePatternRangedOperation =
-  `${RelativePatternOperation}${RelativePatternRange}`;
-
-type RelativePatternStart = 'f' | 't';
-
-type RelativePatternLocationExclusion =
-  | `%f${RelativePatternOperation}0${RelativePatternOperation}0`
-  | `%t${RelativePatternOperation}0${RelativePatternOperation}0`;
-
-export type RelativePatternLocation = Exclude<
-  `%${RelativePatternStart}${RelativePatternRangedOperation}${RelativePatternRangedOperation}`,
-  RelativePatternLocationExclusion
->;
-
-export type PatternLocation = AbsolutePatternLocation | RelativePatternLocation;
-
-export type PatternSegment = `${PatternLocation}=${PatternSquareState}`;
-
-export type Pattern = PatternSegment[];
+export type Pattern = PatternConditional[];
 
 export type Move = {
   from: Square;
@@ -195,7 +175,7 @@ export type EngineEvents = {
   >;
 };
 
-const MAX_SEGMENTS_PER_PATTERN = 12;
+const MAX_CONDITIONALS_PER_PATTERN = 12;
 
 export const DEFAULT_TOURNAMENT_SIZE = 16;
 
@@ -332,67 +312,43 @@ export class System {
     return states;
   }
 
-  generateRandomPatternSegment(
-    instructionMove: Move,
-    square: Square,
-  ): PatternSegment {
-    let patternLocation: PatternLocation = `!${square}`;
-
-    if (EngineUtils.flipCoin()) {
-      const relativeLocations: RelativePatternLocation[] = [];
-
-      const targetMove = EngineUtils.flipCoin() ? 'from' : 'to';
-      const targetSquare = instructionMove[targetMove];
-
-      const targetColumnIndex =
-        columnsToNumericIndexes[targetSquare[0] as Column];
-      const targetRowIndex = parseInt(targetSquare[1]);
-
-      for (let rowIndex = 1; rowIndex <= 8; rowIndex++) {
-        for (let columnIndex = 1; columnIndex <= 8; columnIndex++) {
-          const rowDifference = rowIndex - targetRowIndex;
-          const columnDifference = columnIndex - targetColumnIndex;
-
-          if (rowDifference === 0 && columnDifference === 0) continue;
-
-          const rowOperation = rowDifference > 0 ? '+' : '-';
-          const columnOperation = columnDifference > 0 ? '+' : '-';
-
-          const rowRangedOperation: RelativePatternRangedOperation = `${rowOperation}${`${Math.abs(rowDifference)}` as RelativePatternRange}`;
-          const columnRangedOperation: RelativePatternRangedOperation = `${columnOperation}${`${Math.abs(columnDifference)}` as RelativePatternRange}`;
-
-          relativeLocations.push(
-            `%${targetMove === 'from' ? 'f' : 't'}${columnRangedOperation}${rowRangedOperation}`,
-          );
-        }
-      }
-
-      patternLocation = EngineUtils.pickRandomArrayElement(relativeLocations);
-    }
+  generateRandomPatternConditional(): PatternConditional {
+    const square = EngineUtils.pickRandomArrayElement(allPossibleSquares);
 
     const possibleStates = EngineUtils.pickRandomArrayElement(
       this.getAvailablePatternSquareStates(square),
     );
 
-    return `${patternLocation}=${possibleStates}`;
+    return `${square}=${possibleStates}`;
   }
 
-  generateRandomPattern(move: Move): PatternSegment[] {
-    const fromSquare = this.board.get(move.from);
-    const fromPatternSegment: PatternSegment = `!${move.from}=${fromSquare.color}${fromSquare.type}`;
-    const toPatternSegment: PatternSegment = `!${move.to}=${EngineUtils.pickRandomArrayElement(this.getAvailablePatternSquareStates(move.to))}`;
+  generateRandomPattern(move: Move): Pattern {
+    const fromSquarePiece = this.board.get(move.from);
 
-    const pattern: PatternSegment[] = [fromPatternSegment, toPatternSegment];
+    const fromPatternConditional: PatternConditional = `${move.from}=${fromSquarePiece.color}${fromSquarePiece.type}`;
+    const toPatternConditional: PatternConditional = `${move.to}=${EngineUtils.pickRandomArrayElement(this.getAvailablePatternSquareStates(move.to))}`;
+
+    const pattern: PatternConditional[] = [
+      fromPatternConditional,
+      toPatternConditional,
+    ];
 
     const totalToGenerate = EngineUtils.getRandomInt(
       0,
-      MAX_SEGMENTS_PER_PATTERN - pattern.length,
+      MAX_CONDITIONALS_PER_PATTERN - pattern.length,
     );
 
     for (let i = 0; i < totalToGenerate; i++) {
-      const square = EngineUtils.pickRandomArrayElement(allPossibleSquares);
+      let attempts = 0;
+      while (attempts < 100) {
+        const patternConditional = this.generateRandomPatternConditional();
+        if (!pattern.includes(patternConditional)) {
+          pattern.push(patternConditional);
+          break;
+        }
 
-      pattern.push(this.generateRandomPatternSegment(move, square));
+        attempts++;
+      }
     }
 
     return pattern;
@@ -426,56 +382,6 @@ export class System {
     return instructionSet;
   }
 
-  convertPatternToSquare(
-    patternSegment: PatternSegment,
-    instruction: Instruction,
-  ): Square {
-    if (patternSegment.startsWith('!')) {
-      return `${patternSegment[1]}${patternSegment[2]}` as Square;
-    }
-
-    const startingSquare =
-      patternSegment[1] === 'f' ? instruction.move.from : instruction.move.to;
-    const startingColumnIndex =
-      columnsToNumericIndexes[startingSquare[0] as Column];
-    const startingRowIndex = parseInt(startingSquare[1]);
-
-    const columnDirection = patternSegment[2] === '+' ? 1 : -1;
-    const columnIncrement = parseInt(patternSegment[3]) * columnDirection;
-
-    const rowDirection = patternSegment[4] === '+' ? 1 : -1;
-    const rowIncrement = parseInt(patternSegment[5]) * rowDirection;
-
-    const columnIndex = startingColumnIndex + columnIncrement;
-
-    const column = numericIndexesToColumns[columnIndex];
-    const row = `${startingRowIndex + rowIncrement}` as Row;
-
-    return `${column}${row}`;
-  }
-
-  extractPatternSegmentData(
-    patternSegment: PatternSegment,
-    instruction: Instruction,
-  ) {
-    const [l, patternState] = patternSegment.split('=');
-    const square = this.convertPatternToSquare(patternSegment, instruction);
-    const squareData = this.board.get(square);
-
-    if (!squareData) {
-      return {
-        color: 'e',
-        piece: 'e',
-      };
-    }
-
-    const [color, piece] = patternState.split('');
-    return {
-      color,
-      piece,
-    };
-  }
-
   checkInstruction(instruction: Instruction) {
     const { move, pattern } = instruction;
     const availableMoves = this.board.moves({ verbose: true });
@@ -496,9 +402,8 @@ export class System {
       return false;
     }
 
-    for (const patternSegment of pattern) {
-      const [_l, patternState] = patternSegment.split('=');
-      const square = this.convertPatternToSquare(patternSegment, instruction);
+    for (const patternConditional of pattern) {
+      const [square, patternState] = patternConditional.split('=') as [Square, PatternSquareState];
       const squareData = this.board.get(square);
 
       if (patternState === 'e' && !squareData) {
